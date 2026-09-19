@@ -16,20 +16,18 @@
 <body>
 
 <!-- =========================
-     ゲーム開始画面
+     スタート
 ========================= -->
 
 <div id="startScreen" class="screen">
 
   <h1>⚔️ 勇者の懸賞金RPG</h1>
 
-  <div class="panel">
+  <section class="panel">
 
     <h2>ゲーム開始</h2>
 
-    <label>
-      名前
-    </label>
+    <label for="nameInput">名前</label>
 
     <input
       id="nameInput"
@@ -37,23 +35,13 @@
       value="勇者"
     >
 
-    <label>
-      役職
-    </label>
+    <label for="jobInput">役職</label>
 
     <select id="jobInput">
 
-      <option value="勇者">
-        勇者
-      </option>
-
-      <option value="ヒーラー">
-        ヒーラー
-      </option>
-
-      <option value="剣士">
-        剣士
-      </option>
+      <option value="勇者">勇者</option>
+      <option value="ヒーラー">ヒーラー</option>
+      <option value="剣士">剣士</option>
 
     </select>
 
@@ -61,25 +49,20 @@
       ⚔️ ゲーム開始
     </button>
 
-  </div>
+  </section>
 
 </div>
 
 
 <!-- =========================
-     メインゲーム
+     ゲーム画面
 ========================= -->
 
-<div
-  id="gameScreen"
-  class="screen hidden"
->
+<div id="gameScreen" class="screen hidden">
 
   <header>
 
-    <h1>
-      ⚔️ 勇者の懸賞金RPG
-    </h1>
+    <h1>⚔️ 勇者の懸賞金RPG</h1>
 
     <div id="connectionStatus">
       🔴 オフライン
@@ -90,102 +73,73 @@
 
   <main>
 
+    <!-- プレイヤー -->
 
-    <!-- =====================
-         プレイヤー情報
-    ====================== -->
+    <section class="panel status-panel">
 
-    <section class="panel">
-
-      <h2>
-        👤 プレイヤー
-      </h2>
+      <h2>👤 プレイヤー</h2>
 
       <div class="status-grid">
 
         <div>
           名前<br>
-          <b id="playerName">
-            勇者
-          </b>
+          <b id="playerName">勇者</b>
         </div>
 
         <div>
           役職<br>
-          <b id="job">
-            勇者
-          </b>
+          <b id="job">勇者</b>
         </div>
 
         <div>
           Lv<br>
-          <b id="level">
-            0
-          </b>
+          <b id="level">0</b>
         </div>
 
         <div>
           HP<br>
           <b>
-            <span id="hp">30</span>
-            /
+            <span id="hp">30</span> /
             <span id="maxHp">30</span>
           </b>
         </div>
 
         <div>
           攻撃<br>
-          <b id="attack">
-            0
-          </b>
+          <b id="attack">0</b>
         </div>
 
         <div>
           XP<br>
-          <b id="xp">
-            0
-          </b>
+          <b id="xp">0</b>
         </div>
 
         <div>
           お金<br>
-          <b id="money">
-            250
-          </b>
-          円
+          <b id="money">250</b>円
         </div>
 
         <div>
           懸賞金<br>
-          <b id="bounty">
-            0
-          </b>
-          円
+          <b id="bounty">0</b>円
         </div>
 
         <div>
           武器<br>
-          <b id="weapon">
-            タガー
-          </b>
+          <b id="weapon">タガー</b>
         </div>
 
         <div>
           エリア<br>
-          <b id="area">
-            草原
-          </b>
+          <b id="area">草原</b>
         </div>
 
         <div>
           討伐数<br>
-          <b id="defeats">
-            0
-          </b>
+          <b id="defeats">0</b>
         </div>
 
       </div>
-
 
       <div class="hp-outer">
 
@@ -199,20 +153,16 @@
     </section>
 
 
-    <!-- =====================
-         中央メッセージ
-    ====================== -->
+    <!-- メッセージ -->
 
     <section class="panel message-panel">
 
-      <h2>
-        📜 メッセージ
-      </h2>
+      <h2>📜 メッセージ</h2>
 
       <div id="log">
 
         <div>
-          ゲームを開始してください。
+          ゲームを開始しました！
         </div>
 
       </div>
@@ -220,18 +170,14 @@
     </section>
 
 
-    <!-- =====================
-         戦闘
-    ====================== -->
+    <!-- 戦闘 -->
 
     <section
       id="battleScreen"
       class="panel battle-panel hidden"
     >
 
-      <h2>
-        ⚔️ 戦闘
-      </h2>
+      <h2>⚔️ 戦闘</h2>
 
       <div class="enemy-box">
 
@@ -242,16 +188,9 @@
         <div class="enemy-hp-text">
 
           HP
-
-          <span id="enemyHp">
-            0
-          </span>
-
+          <span id="enemyHp">0</span>
           /
-
-          <span id="enemyMaxHp">
-            0
-          </span>
+          <span id="enemyMaxHp">0</span>
 
         </div>
 
@@ -294,22 +233,16 @@
     </section>
 
 
-    <!-- =====================
-         レベルアップ
-    ====================== -->
+    <!-- レベルアップ -->
 
     <section
       id="levelChoices"
       class="panel hidden"
     >
 
-      <h2>
-        ⬆️ レベルアップ
-      </h2>
+      <h2>⬆️ レベルアップ</h2>
 
-      <p>
-        どれを選びますか？
-      </p>
+      <p>どれを選びますか？</p>
 
       <button id="hpLevelBtn">
         ❤️ HP増加
@@ -326,15 +259,11 @@
     </section>
 
 
-    <!-- =====================
-         メニュー
-    ====================== -->
+    <!-- メニュー -->
 
     <section class="panel menu-panel">
 
-      <h2>
-        📖 メニュー
-      </h2>
+      <h2>📖 メニュー</h2>
 
       <div class="menu-grid">
 
@@ -374,7 +303,6 @@
           👑 ボス
         </button>
 
-        <!-- ★ オンライン -->
         <button id="onlineBtn">
           🌐 オンライン
         </button>
@@ -384,56 +312,52 @@
     </section>
 
 
-    <!-- =====================
-         オンラインメニュー
-    ====================== -->
+    <!-- =========================
+         オンライン
+    ========================= -->
 
     <section
       id="onlinePanel"
-      class="panel online-game-panel hidden"
+      class="panel online-panel hidden"
     >
 
-      <h2>
-        🌐 オンライン
-      </h2>
+      <h2>🌐 オンライン</h2>
 
-
-      <div id="roomStatus">
+      <div
+        id="roomStatus"
+        class="room-status"
+      >
         未接続
       </div>
 
 
-      <div class="online-actions">
+      <div class="online-buttons">
 
         <button id="createRoomBtn">
           🏠 ルームを作る
         </button>
 
+      </div>
 
-        <div class="join-row">
 
-          <input
-            id="roomCodeInput"
-            maxlength="10"
-            placeholder="ルームID"
-          >
+      <div class="join-row">
 
-          <button id="joinRoomBtn">
-            参加
-          </button>
+        <input
+          id="roomCodeInput"
+          maxlength="10"
+          placeholder="ルームID"
+        >
 
-        </div>
+        <button id="joinRoomBtn">
+          🔑 参加
+        </button>
 
       </div>
 
 
-      <!-- ルーム情報 -->
-
       <div class="room-box">
 
-        <h3>
-          👥 同じルームのプレイヤー
-        </h3>
+        <h3>👥 同じルームのプレイヤー</h3>
 
         <div id="roomInfo">
           ルームなし
@@ -442,7 +366,10 @@
         <div id="roomPlayers">
         </div>
 
-        <button id="leaveRoomBtn">
+        <button
+          id="leaveRoomBtn"
+          class="danger-button"
+        >
           🚪 ルームから退出
         </button>
 
@@ -451,22 +378,19 @@
 
       <!-- 公開チャット -->
 
-      <div class="chat-panel">
+      <div class="chat-box">
 
-        <h3>
-          💬 公開チャット
-        </h3>
+        <h3>💬 公開チャット</h3>
 
         <div id="chatLog">
         </div>
-
 
         <div class="chat-row">
 
           <input
             id="chatInput"
             maxlength="200"
-            placeholder="メッセージ"
+            placeholder="メッセージを入力"
           >
 
           <button id="chatSendBtn">
@@ -477,12 +401,15 @@
 
       </div>
 
+
+      <button id="closeOnlineBtn">
+        閉じる
+      </button>
+
     </section>
 
 
-    <!-- =====================
-         情報画面
-    ====================== -->
+    <!-- 情報 -->
 
     <section
       id="infoPanel"
@@ -516,9 +443,7 @@
   class="screen hidden"
 >
 
-  <h1>
-    💀 ゲームオーバー
-  </h1>
+  <h1>💀 ゲームオーバー</h1>
 
   <p>
     すべてのデータがリセットされました。
@@ -531,9 +456,7 @@
 </div>
 
 
-<!-- =========================
-     Socket.IO
-========================= -->
+<!-- Socket.IO -->
 
 <script src="/socket.io/socket.io.js"></script>
 
