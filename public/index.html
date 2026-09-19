@@ -15,9 +15,9 @@
 
 <body>
 
-<!-- =========================
-     スタート
-========================= -->
+<!-- ================================ -->
+<!-- スタート -->
+<!-- ================================ -->
 
 <div id="startScreen" class="screen">
 
@@ -27,7 +27,9 @@
 
     <h2>ゲーム開始</h2>
 
-    <label for="nameInput">名前</label>
+    <label for="nameInput">
+      名前
+    </label>
 
     <input
       id="nameInput"
@@ -35,13 +37,23 @@
       value="勇者"
     >
 
-    <label for="jobInput">役職</label>
+    <label for="jobInput">
+      役職
+    </label>
 
     <select id="jobInput">
 
-      <option value="勇者">勇者</option>
-      <option value="ヒーラー">ヒーラー</option>
-      <option value="剣士">剣士</option>
+      <option value="勇者">
+        勇者
+      </option>
+
+      <option value="ヒーラー">
+        ヒーラー
+      </option>
+
+      <option value="剣士">
+        剣士
+      </option>
 
     </select>
 
@@ -54,15 +66,17 @@
 </div>
 
 
-<!-- =========================
-     ゲーム画面
-========================= -->
+<!-- ================================ -->
+<!-- ゲーム -->
+<!-- ================================ -->
 
 <div id="gameScreen" class="screen hidden">
 
   <header>
 
-    <h1>⚔️ 勇者の懸賞金RPG</h1>
+    <h1>
+      ⚔️ 勇者の懸賞金RPG
+    </h1>
 
     <div id="connectionStatus">
       🔴 オフライン
@@ -73,73 +87,106 @@
 
   <main>
 
-    <!-- プレイヤー -->
+
+    <!-- ============================ -->
+    <!-- プレイヤー情報 -->
+    <!-- ============================ -->
 
     <section class="panel status-panel">
 
-      <h2>👤 プレイヤー</h2>
+      <h2>
+        👤 プレイヤー
+      </h2>
 
       <div class="status-grid">
 
         <div>
           名前<br>
-          <b id="playerName">勇者</b>
+          <b id="playerName">
+            勇者
+          </b>
         </div>
 
         <div>
           役職<br>
-          <b id="job">勇者</b>
+          <b id="job">
+            勇者
+          </b>
         </div>
 
         <div>
           Lv<br>
-          <b id="level">0</b>
+          <b id="level">
+            0
+          </b>
         </div>
 
         <div>
           HP<br>
           <b>
-            <span id="hp">30</span> /
-            <span id="maxHp">30</span>
+            <span id="hp">
+              30
+            </span>
+            /
+            <span id="maxHp">
+              30
+            </span>
           </b>
         </div>
 
         <div>
           攻撃<br>
-          <b id="attack">0</b>
+          <b id="attack">
+            0
+          </b>
         </div>
 
         <div>
           XP<br>
-          <b id="xp">0</b>
+          <b id="xp">
+            0
+          </b>
         </div>
 
         <div>
           お金<br>
-          <b id="money">250</b>円
+          <b id="money">
+            250
+          </b>
+          円
         </div>
 
         <div>
           懸賞金<br>
-          <b id="bounty">0</b>円
+          <b id="bounty">
+            0
+          </b>
+          円
         </div>
 
         <div>
           武器<br>
-          <b id="weapon">タガー</b>
+          <b id="weapon">
+            タガー
+          </b>
         </div>
 
         <div>
           エリア<br>
-          <b id="area">草原</b>
+          <b id="area">
+            草原
+          </b>
         </div>
 
         <div>
           討伐数<br>
-          <b id="defeats">0</b>
+          <b id="defeats">
+            0
+          </b>
         </div>
 
       </div>
+
 
       <div class="hp-outer">
 
@@ -153,11 +200,15 @@
     </section>
 
 
+    <!-- ============================ -->
     <!-- メッセージ -->
+    <!-- ============================ -->
 
     <section class="panel message-panel">
 
-      <h2>📜 メッセージ</h2>
+      <h2>
+        📜 メッセージ
+      </h2>
 
       <div id="log">
 
@@ -170,14 +221,19 @@
     </section>
 
 
-    <!-- 戦闘 -->
+    <!-- ============================ -->
+    <!-- モンスター戦闘 -->
+    <!-- ============================ -->
 
     <section
       id="battleScreen"
       class="panel battle-panel hidden"
     >
 
-      <h2>⚔️ 戦闘</h2>
+      <h2>
+        ⚔️ 戦闘
+      </h2>
+
 
       <div class="enemy-box">
 
@@ -188,11 +244,19 @@
         <div class="enemy-hp-text">
 
           HP
-          <span id="enemyHp">0</span>
+
+          <span id="enemyHp">
+            0
+          </span>
+
           /
-          <span id="enemyMaxHp">0</span>
+
+          <span id="enemyMaxHp">
+            0
+          </span>
 
         </div>
+
 
         <div class="hp-outer enemy-bar">
 
@@ -233,16 +297,107 @@
     </section>
 
 
+    <!-- ============================ -->
+    <!-- PvP戦闘 -->
+    <!-- ============================ -->
+
+    <section
+      id="pvpBattleScreen"
+      class="panel battle-panel hidden"
+    >
+
+      <h2>
+        ⚔️ プレイヤー対戦
+      </h2>
+
+
+      <div class="enemy-box">
+
+        <div id="pvpOpponentName">
+          相手
+        </div>
+
+        <div class="enemy-hp-text">
+
+          HP
+
+          <span id="pvpOpponentHp">
+            0
+          </span>
+
+          /
+
+          <span id="pvpOpponentMaxHp">
+            0
+          </span>
+
+        </div>
+
+
+        <div class="hp-outer enemy-bar">
+
+          <div
+            id="pvpOpponentHpBar"
+            class="hp-inner"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <div class="pvp-turn">
+
+        <b id="pvpTurnText">
+          PvP準備中
+        </b>
+
+      </div>
+
+
+      <div class="battle-buttons">
+
+        <button id="pvpAttackBtn">
+          ⚔️ コウゲキ
+        </button>
+
+        <button id="pvpDefendBtn">
+          🛡️ ボウギョ
+        </button>
+
+        <button id="pvpSkillBtn">
+          ✨ スキル
+        </button>
+
+        <button id="pvpInspectBtn">
+          🔎 シラベル
+        </button>
+
+        <button id="pvpRunBtn">
+          🏃 ニゲル
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================ -->
     <!-- レベルアップ -->
+    <!-- ============================ -->
 
     <section
       id="levelChoices"
       class="panel hidden"
     >
 
-      <h2>⬆️ レベルアップ</h2>
+      <h2>
+        ⬆️ レベルアップ
+      </h2>
 
-      <p>どれを選びますか？</p>
+      <p>
+        どれを選びますか？
+      </p>
 
       <button id="hpLevelBtn">
         ❤️ HP増加
@@ -259,13 +414,22 @@
     </section>
 
 
+    <!-- ============================ -->
     <!-- メニュー -->
+    <!-- ============================ -->
 
     <section class="panel menu-panel">
 
-      <h2>📖 メニュー</h2>
+      <h2>
+        📖 メニュー
+      </h2>
+
 
       <div class="menu-grid">
+
+        <button id="battleStartBtn">
+          ⚔️ 敵と戦う
+        </button>
 
         <button id="skillsBtn">
           ✨ スキル情報
@@ -312,16 +476,19 @@
     </section>
 
 
-    <!-- =========================
-         オンライン
-    ========================= -->
+    <!-- ============================ -->
+    <!-- オンライン -->
+    <!-- ============================ -->
 
     <section
       id="onlinePanel"
       class="panel online-panel hidden"
     >
 
-      <h2>🌐 オンライン</h2>
+      <h2>
+        🌐 オンライン
+      </h2>
+
 
       <div
         id="roomStatus"
@@ -355,16 +522,24 @@
       </div>
 
 
+      <!-- ========================== -->
+      <!-- ルーム -->
+      <!-- ========================== -->
+
       <div class="room-box">
 
-        <h3>👥 同じルームのプレイヤー</h3>
+        <h3>
+          👥 同じルームのプレイヤー
+        </h3>
+
 
         <div id="roomInfo">
           ルームなし
         </div>
 
-        <div id="roomPlayers">
-        </div>
+
+        <div id="roomPlayers"></div>
+
 
         <button
           id="leaveRoomBtn"
@@ -376,14 +551,19 @@
       </div>
 
 
+      <!-- ========================== -->
       <!-- 公開チャット -->
+      <!-- ========================== -->
 
       <div class="chat-box">
 
-        <h3>💬 公開チャット</h3>
+        <h3>
+          💬 公開チャット
+        </h3>
 
-        <div id="chatLog">
-        </div>
+
+        <div id="chatLog"></div>
+
 
         <div class="chat-row">
 
@@ -409,7 +589,9 @@
     </section>
 
 
+    <!-- ============================ -->
     <!-- 情報 -->
+    <!-- ============================ -->
 
     <section
       id="infoPanel"
@@ -420,8 +602,7 @@
         情報
       </h2>
 
-      <div id="infoContent">
-      </div>
+      <div id="infoContent"></div>
 
       <button id="closeInfoBtn">
         閉じる
@@ -434,16 +615,18 @@
 </div>
 
 
-<!-- =========================
-     ゲームオーバー
-========================= -->
+<!-- ================================ -->
+<!-- ゲームオーバー -->
+<!-- ================================ -->
 
 <div
   id="gameOverScreen"
   class="screen hidden"
 >
 
-  <h1>💀 ゲームオーバー</h1>
+  <h1>
+    💀 ゲームオーバー
+  </h1>
 
   <p>
     すべてのデータがリセットされました。
@@ -456,11 +639,11 @@
 </div>
 
 
+<!-- ================================ -->
 <!-- Socket.IO -->
+<!-- ================================ -->
 
 <script src="/socket.io/socket.io.js"></script>
-
-<!-- ゲーム本体 -->
 
 <script src="game.js"></script>
 
