@@ -16,63 +16,138 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
 
+
+// ========================================
+// ルーム管理
+// ========================================
+
 const rooms = new Map();
 
-function makeRoomId() {
+
+// ========================================
+// ルームID生成
+// ========================================
+
+function createRoomId() {
+
   let id;
 
   do {
+
     id = Math.random()
       .toString(36)
       .substring(2, 7)
       .toUpperCase();
+
   } while (rooms.has(id));
 
   return id;
 }
 
-function getPlayers(roomId) {
-  const room = rooms.get(roomId);
 
-  if (!room) return [];
+// ========================================
+// プレイヤー情報
+// ========================================
 
-  return [...room.players.values()].map(player => ({
+function publicPlayer(player) {
+
+  return {
     id: player.id,
     name: player.name,
+    job: player.job,
+
     hp: player.hp,
     maxHp: player.maxHp,
+
     level: player.level,
-    bounty: player.bounty,
+
+    attack: player.attack,
+
+    xp: player.xp,
+
     money: player.money,
-    job: player.job,
-    area: player.area
-  }));
+
+    bounty: player.bounty,
+
+    weapon: player.weapon,
+
+    area: player.area,
+
+    defeats: player.defeats
+  };
 }
 
-function broadcastPlayers(roomId) {
+
+// ========================================
+// ルーム内プレイヤー一覧
+// ========================================
+
+function getRoomPlayers(roomId) {
+
+  const room = rooms.get(roomId);
+
+  if (!room) {
+    return [];
+  }
+
+  return [...room.players.values()]
+    .map(publicPlayer);
+}
+
+
+// ========================================
+// プレイヤー一覧送信
+// ========================================
+
+function updateRoomPlayers(roomId) {
+
+  const players = getRoomPlayers(roomId);
+
   io.to(roomId).emit(
-    "playersUpdate",
-    getPlayers(roomId)
+    "roomPlayersUpdate",
+    players
   );
 }
 
+
+// ========================================
+// システムメッセージ
+// ========================================
+
+function systemMessage(roomId, message) {
+
+  io.to(roomId).emit(
+    "publicMessage",
+    {
+      name: "システム",
+      message
+    }
+  );
+}
+
+
+// ========================================
+// ルーム退出
+// ========================================
+
 function leaveRoom(socket) {
 
-  const roomId =
-    socket.data.roomId;
+  const roomId = socket.data.roomId;
 
-  if (!roomId) return;
-
-  const room =
-    rooms.get(roomId);
-
-  if (!room) {
-    socket.data.roomId = null;
+  if (!roomId) {
     return;
   }
 
-  const player =
-    room.players.get(socket.id);
+  const room = rooms.get(roomId);
+
+  if (!room) {
+
+    socket.data.roomId = null;
+
+    return;
+  }
+
+  const player = room.players.get(socket.id);
 
   room.players.delete(socket.id);
 
@@ -80,14 +155,11 @@ function leaveRoom(socket) {
 
   if (player) {
 
-    io.to(roomId).emit(
-      "publicMessage",
-      {
-        name: "システム",
-        message:
-          `${player.name} が退出しました。`
-      }
+    systemMessage(
+      roomId,
+      `${player.name} がルームから退出しました。`
     );
+
   }
 
   if (room.players.size === 0) {
@@ -96,16 +168,21 @@ function leaveRoom(socket) {
 
   } else {
 
-    broadcastPlayers(roomId);
+    updateRoomPlayers(roomId);
+
   }
+
+  socket.emit(
+    "leftRoom"
+  );
 
   socket.data.roomId = null;
 }
 
 
-/* =========================
-   接続
-========================= */
+// ========================================
+// Socket.IO
+// ========================================
 
 io.on("connection", socket => {
 
@@ -115,438 +192,545 @@ io.on("connection", socket => {
   );
 
 
-  /* =========================
-     ルーム作成
-  ========================= */
+  // ======================================
+  // 接続成功
+  // ======================================
 
-  socket.on(
-    "createRoom",
-    data => {
+  socket.emit(
+    "onlineReady"
+  );
 
-      const name =
-        typeof data?.name === "string" &&
-        data.name.trim()
-          ? data.name.trim().slice(0, 16)
-          : "勇者";
 
-      const roomId =
-        makeRoomId();
+  // ======================================
+  // ルーム作成
+  // ======================================
 
-      const room = {
-        players: new Map()
-      };
+  socket.on("createRoom", data => {
 
-      rooms.set(
+    // すでにルームにいる場合
+    if (socket.data.roomId) {
+
+      socket.emit(
+        "roomError",
+        "すでにルームに参加しています。"
+      );
+
+      return;
+    }
+
+
+    let name =
+      typeof data?.name === "string"
+        ? data.name.trim()
+        : "勇者";
+
+
+    if (!name) {
+      name = "勇者";
+    }
+
+
+    name =
+      name.substring(0, 16);
+
+
+    const roomId =
+      createRoomId();
+
+
+    const room = {
+
+      id: roomId,
+
+      players: new Map(),
+
+      createdAt: Date.now()
+
+    };
+
+
+    const player = {
+
+      id: socket.id,
+
+      name,
+
+      job: "勇者",
+
+      hp: 30,
+
+      maxHp: 30,
+
+      level: 0,
+
+      attack: 0,
+
+      xp: 0,
+
+      money: 250,
+
+      bounty: 0,
+
+      weapon: "タガー",
+
+      area: "草原",
+
+      defeats: 0
+
+    };
+
+
+    room.players.set(
+      socket.id,
+      player
+    );
+
+
+    rooms.set(
+      roomId,
+      room
+    );
+
+
+    socket.join(roomId);
+
+    socket.data.roomId =
+      roomId;
+
+    socket.data.name =
+      name;
+
+
+    socket.emit(
+      "roomCreated",
+      {
         roomId,
-        room
-      );
+        players:
+          getRoomPlayers(roomId)
+      }
+    );
 
-      const player = {
 
-        id: socket.id,
+    updateRoomPlayers(
+      roomId
+    );
 
-        name,
 
-        hp: 30,
-        maxHp: 30,
+    console.log(
+      `${name} がルーム ${roomId} を作成`
+    );
 
-        level: 0,
+  });
 
-        bounty: 0,
 
-        money: 250,
+  // ======================================
+  // ルーム参加
+  // ======================================
 
-        job: "勇者",
+  socket.on("joinRoom", data => {
 
-        area: "草原"
-      };
-
-      room.players.set(
-        socket.id,
-        player
-      );
-
-      socket.join(roomId);
-
-      socket.data.roomId =
-        roomId;
-
-      socket.data.name =
-        name;
+    if (socket.data.roomId) {
 
       socket.emit(
-        "roomCreated",
-        {
-          roomId,
-          players:
-            getPlayers(roomId)
-        }
+        "roomError",
+        "すでにルームに参加しています。"
       );
 
-      broadcastPlayers(roomId);
-
-      console.log(
-        `${name} が ${roomId} を作成`
-      );
+      return;
     }
-  );
 
 
-  /* =========================
-     ルーム参加
-  ========================= */
-
-  socket.on(
-    "joinRoom",
-    data => {
-
-      const roomId =
-        typeof data?.roomId === "string"
-          ? data.roomId
-              .trim()
-              .toUpperCase()
-          : "";
-
-      const name =
-        typeof data?.name === "string" &&
-        data.name.trim()
-          ? data.name.trim().slice(0, 16)
-          : "勇者";
+    let roomId =
+      typeof data?.roomId === "string"
+        ? data.roomId.trim().toUpperCase()
+        : "";
 
 
-      if (!roomId) {
-
-        socket.emit(
-          "roomError",
-          "ルームIDを入力してください。"
-        );
-
-        return;
-      }
+    let name =
+      typeof data?.name === "string"
+        ? data.name.trim()
+        : "勇者";
 
 
-      const room =
-        rooms.get(roomId);
-
-
-      if (!room) {
-
-        socket.emit(
-          "roomError",
-          "そのルームは存在しません。"
-        );
-
-        return;
-      }
-
-
-      if (room.players.size >= 20) {
-
-        socket.emit(
-          "roomError",
-          "ルームが満員です。"
-        );
-
-        return;
-      }
-
-
-      const player = {
-
-        id: socket.id,
-
-        name,
-
-        hp: 30,
-        maxHp: 30,
-
-        level: 0,
-
-        bounty: 0,
-
-        money: 250,
-
-        job: "勇者",
-
-        area: "草原"
-      };
-
-
-      room.players.set(
-        socket.id,
-        player
-      );
-
-      socket.join(roomId);
-
-      socket.data.roomId =
-        roomId;
-
-      socket.data.name =
-        name;
-
+    if (!roomId) {
 
       socket.emit(
-        "roomJoined",
-        {
-          roomId,
-          players:
-            getPlayers(roomId)
-        }
+        "roomError",
+        "ルームIDを入力してください。"
       );
 
-
-      socket.to(roomId).emit(
-        "publicMessage",
-        {
-          name: "システム",
-          message:
-            `${name} が参加しました。`
-        }
-      );
-
-
-      broadcastPlayers(roomId);
-
-      console.log(
-        `${name} が ${roomId} に参加`
-      );
+      return;
     }
-  );
 
 
-  /* =========================
-     プレイヤー情報同期
-  ========================= */
-
-  socket.on(
-    "playerUpdate",
-    data => {
-
-      const roomId =
-        socket.data.roomId;
-
-      if (!roomId) return;
-
-      const room =
-        rooms.get(roomId);
-
-      if (!room) return;
-
-      const player =
-        room.players.get(socket.id);
-
-      if (!player) return;
-
-
-      if (
-        typeof data?.name ===
-        "string"
-      ) {
-
-        player.name =
-          data.name
-            .trim()
-            .slice(0, 16);
-
-        socket.data.name =
-          player.name;
-      }
-
-
-      if (
-        Number.isFinite(data?.hp)
-      ) {
-
-        player.hp =
-          Math.max(
-            0,
-            Math.floor(data.hp)
-          );
-      }
-
-
-      if (
-        Number.isFinite(data?.maxHp)
-      ) {
-
-        player.maxHp =
-          Math.max(
-            1,
-            Math.floor(data.maxHp)
-          );
-      }
-
-
-      if (
-        Number.isFinite(data?.level)
-      ) {
-
-        player.level =
-          Math.max(
-            0,
-            Math.floor(data.level)
-          );
-      }
-
-
-      if (
-        Number.isFinite(data?.bounty)
-      ) {
-
-        player.bounty =
-          Math.max(
-            0,
-            Math.floor(data.bounty)
-          );
-      }
-
-
-      if (
-        Number.isFinite(data?.money)
-      ) {
-
-        player.money =
-          Math.max(
-            0,
-            Math.floor(data.money)
-          );
-      }
-
-
-      if (
-        typeof data?.job ===
-        "string"
-      ) {
-
-        player.job =
-          data.job
-            .trim()
-            .slice(0, 20);
-      }
-
-
-      if (
-        typeof data?.area ===
-        "string"
-      ) {
-
-        player.area =
-          data.area
-            .trim()
-            .slice(0, 20);
-      }
-
-
-      broadcastPlayers(roomId);
+    if (!name) {
+      name = "勇者";
     }
-  );
 
 
-  /* =========================
-     戦闘ログ同期
-  ========================= */
+    name =
+      name.substring(0, 16);
 
-  socket.on(
-    "battleLog",
-    message => {
 
-      const roomId =
-        socket.data.roomId;
+    const room =
+      rooms.get(roomId);
 
-      if (!roomId) return;
 
-      if (
-        typeof message !==
-        "string"
-      ) {
-        return;
+    if (!room) {
+
+      socket.emit(
+        "roomError",
+        "そのルームは存在しません。"
+      );
+
+      return;
+    }
+
+
+    // 最大20人
+    if (room.players.size >= 20) {
+
+      socket.emit(
+        "roomError",
+        "ルームが満員です。"
+      );
+
+      return;
+    }
+
+
+    const player = {
+
+      id: socket.id,
+
+      name,
+
+      job: "勇者",
+
+      hp: 30,
+
+      maxHp: 30,
+
+      level: 0,
+
+      attack: 0,
+
+      xp: 0,
+
+      money: 250,
+
+      bounty: 0,
+
+      weapon: "タガー",
+
+      area: "草原",
+
+      defeats: 0
+
+    };
+
+
+    room.players.set(
+      socket.id,
+      player
+    );
+
+
+    socket.join(roomId);
+
+    socket.data.roomId =
+      roomId;
+
+    socket.data.name =
+      name;
+
+
+    socket.emit(
+      "roomJoined",
+      {
+        roomId,
+
+        players:
+          getRoomPlayers(roomId)
       }
+    );
 
 
-      const text =
-        message
+    systemMessage(
+      roomId,
+      `${name} がルームに参加しました！`
+    );
+
+
+    updateRoomPlayers(
+      roomId
+    );
+
+
+    console.log(
+      `${name} がルーム ${roomId} に参加`
+    );
+
+  });
+
+
+  // ======================================
+  // 自分のゲーム情報更新
+  // ======================================
+
+  socket.on("playerUpdate", data => {
+
+    const roomId =
+      socket.data.roomId;
+
+
+    if (!roomId) {
+      return;
+    }
+
+
+    const room =
+      rooms.get(roomId);
+
+
+    if (!room) {
+      return;
+    }
+
+
+    const player =
+      room.players.get(socket.id);
+
+
+    if (!player) {
+      return;
+    }
+
+
+    if (
+      typeof data?.name === "string"
+    ) {
+
+      player.name =
+        data.name
           .trim()
-          .slice(0, 200);
+          .substring(0, 16);
 
+      socket.data.name =
+        player.name;
 
-      if (!text) return;
-
-
-      io.to(roomId).emit(
-        "onlineBattleLog",
-        {
-          name:
-            socket.data.name ||
-            "勇者",
-
-          message: text
-        }
-      );
     }
-  );
 
 
-  /* =========================
-     公開チャット
-  ========================= */
+    if (
+      typeof data?.job === "string"
+    ) {
 
-  socket.on(
-    "chat",
-    message => {
+      player.job =
+        data.job
+          .trim()
+          .substring(0, 20);
 
-      const roomId =
-        socket.data.roomId;
+    }
 
-      if (!roomId) return;
+
+    const numberFields = [
+
+      "hp",
+
+      "maxHp",
+
+      "level",
+
+      "attack",
+
+      "xp",
+
+      "money",
+
+      "bounty",
+
+      "defeats"
+
+    ];
+
+
+    for (
+      const field
+      of numberFields
+    ) {
 
       if (
-        typeof message !==
-        "string"
+        Number.isFinite(
+          data?.[field]
+        )
       ) {
-        return;
+
+        player[field] =
+          Math.max(
+            0,
+            Math.floor(
+              data[field]
+            )
+          );
+
       }
 
-
-      const text =
-        message
-          .trim()
-          .slice(0, 200);
-
-
-      if (!text) return;
-
-
-      io.to(roomId).emit(
-        "publicMessage",
-        {
-          name:
-            socket.data.name ||
-            "勇者",
-
-          message: text
-        }
-      );
     }
-  );
 
 
-  /* =========================
-     退出
-  ========================= */
+    if (
+      typeof data?.weapon === "string"
+    ) {
+
+      player.weapon =
+        data.weapon
+          .substring(0, 30);
+
+    }
+
+
+    if (
+      typeof data?.area === "string"
+    ) {
+
+      player.area =
+        data.area
+          .substring(0, 30);
+
+    }
+
+
+    updateRoomPlayers(
+      roomId
+    );
+
+  });
+
+
+  // ======================================
+  // 公開チャット
+  // ======================================
+
+  socket.on("chat", message => {
+
+    const roomId =
+      socket.data.roomId;
+
+
+    if (!roomId) {
+
+      socket.emit(
+        "roomError",
+        "先にルームへ参加してください。"
+      );
+
+      return;
+    }
+
+
+    if (
+      typeof message !== "string"
+    ) {
+
+      return;
+    }
+
+
+    const text =
+      message.trim();
+
+
+    if (!text) {
+      return;
+    }
+
+
+    // 最大200文字
+    const safeText =
+      text.substring(0, 200);
+
+
+    io.to(roomId).emit(
+      "publicMessage",
+      {
+        name:
+          socket.data.name ||
+          "勇者",
+
+        message:
+          safeText
+      }
+    );
+
+  });
+
+
+  // ======================================
+  // 戦闘ログ共有
+  // ======================================
+
+  socket.on("battleLog", message => {
+
+    const roomId =
+      socket.data.roomId;
+
+
+    if (!roomId) {
+      return;
+    }
+
+
+    if (
+      typeof message !== "string"
+    ) {
+
+      return;
+    }
+
+
+    const text =
+      message.trim()
+        .substring(0, 200);
+
+
+    if (!text) {
+      return;
+    }
+
+
+    io.to(roomId).emit(
+      "onlineBattleLog",
+      {
+        name:
+          socket.data.name ||
+          "勇者",
+
+        message:
+          text
+      }
+    );
+
+  });
+
+
+  // ======================================
+  // ルーム退出
+  // ======================================
 
   socket.on(
     "leaveRoom",
     () => {
 
       leaveRoom(socket);
+
     }
   );
 
 
-  /* =========================
-     切断
-  ========================= */
+  // ======================================
+  // 切断
+  // ======================================
 
   socket.on(
     "disconnect",
@@ -558,15 +742,16 @@ io.on("connection", socket => {
       );
 
       leaveRoom(socket);
+
     }
   );
 
 });
 
 
-/* =========================
-   トップページ
-========================= */
+// ========================================
+// メインページ
+// ========================================
 
 app.get(
   "/",
@@ -579,20 +764,25 @@ app.get(
         "index.html"
       )
     );
+
   }
 );
 
 
-/* =========================
-   起動
-========================= */
+// ========================================
+// サーバー起動
+// ========================================
 
 server.listen(
   PORT,
   () => {
 
     console.log(
-      `勇者の懸賞金RPG ONLINE SERVER : ${PORT}`
+      `勇者の懸賞金RPG ONLINE`
+    );
+
+    console.log(
+      `PORT: ${PORT}`
     );
 
   }
