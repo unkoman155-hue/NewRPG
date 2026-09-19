@@ -1,7 +1,7 @@
 {
   "name": "yuusha-bounty-rpg",
-  "version": "1.0.0",
-  "description": "勇者の懸賞金RPG オンライン",
+  "version": "2.0.0",
+  "description": "勇者の懸賞金RPG ONLINE",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
