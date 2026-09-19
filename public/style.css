@@ -8,8 +8,10 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100%;
+
   background: #080b12;
   color: #ffffff;
+
   font-family:
     system-ui,
     -apple-system,
@@ -31,11 +33,17 @@ select {
 button {
   border: 0;
   border-radius: 12px;
+
   padding: 13px 16px;
+
   background: #26334a;
   color: white;
+
   cursor: pointer;
-  transition: 0.15s;
+
+  transition:
+    transform 0.1s,
+    filter 0.15s;
 }
 
 button:active {
@@ -43,23 +51,31 @@ button:active {
 }
 
 button:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.15);
 }
 
 input,
 select {
   width: 100%;
+
   padding: 12px;
-  margin: 5px 0 12px;
+
+  margin:
+    5px 0 12px;
+
   border-radius: 10px;
+
   border: 1px solid #39445a;
+
   background: #111827;
+
   color: white;
 }
 
 .screen {
   width: 100%;
   min-height: 100vh;
+
   padding: 20px;
 }
 
@@ -77,6 +93,10 @@ h2 {
   font-size: 20px;
 }
 
+h3 {
+  margin-top: 15px;
+}
+
 main {
   width: 100%;
   max-width: 900px;
@@ -85,59 +105,126 @@ main {
 
 .panel {
   width: 100%;
+
   margin: 14px auto;
   padding: 18px;
+
   background: #111827;
+
   border: 1px solid #293449;
+
   border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
-#startScreen {
-  max-width: 600px;
-  margin: auto;
-}
+
+/* =========================
+   ステータス
+========================= */
 
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 8px;
 }
 
 .status-grid > div {
   background: #192235;
+
   border-radius: 10px;
+
   padding: 10px;
+
   text-align: center;
+
   min-height: 58px;
 }
 
 .hp-outer {
   width: 100%;
+
   height: 18px;
+
   margin-top: 12px;
+
   background: #303847;
+
   border-radius: 999px;
+
   overflow: hidden;
 }
 
 .hp-inner {
   width: 100%;
   height: 100%;
+
   background: #35d06f;
-  transition: width 0.25s;
+
+  transition:
+    width 0.25s;
 }
+
+
+/* =========================
+   メッセージ
+========================= */
+
+.message-panel {
+  border: 2px solid #485a78;
+}
+
+#log {
+  width: 100%;
+
+  height: 230px;
+
+  overflow-y: auto;
+
+  padding: 14px;
+
+  background: #070a10;
+
+  border-radius: 12px;
+
+  text-align: left;
+
+  font-size: 17px;
+
+  line-height: 1.7;
+}
+
+#log div {
+  border-bottom:
+    1px solid #202838;
+
+  padding: 5px 2px;
+}
+
+
+/* =========================
+   戦闘
+========================= */
 
 .enemy-box {
   background: #171d2a;
+
   padding: 18px;
+
   border-radius: 14px;
+
   text-align: center;
 }
 
 #enemyName {
   font-size: 26px;
+
   font-weight: bold;
+
   margin-bottom: 8px;
 }
 
@@ -147,8 +234,12 @@ main {
 
 .battle-buttons {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
   gap: 8px;
+
   margin-top: 14px;
 }
 
@@ -172,116 +263,207 @@ main {
   background: #555555;
 }
 
-/* 中央ログ */
-.message-panel {
-  border: 2px solid #485a78;
-}
 
-#log {
+/* =========================
+   レベル
+========================= */
+
+#levelChoices button {
   width: 100%;
-  height: 230px;
-  overflow-y: auto;
-  padding: 14px;
-  background: #070a10;
-  border-radius: 12px;
-  text-align: left;
-  font-size: 17px;
-  line-height: 1.7;
+
+  margin: 5px 0;
 }
 
-#log div {
-  border-bottom: 1px solid #202838;
-  padding: 5px 2px;
-}
+
+/* =========================
+   メニュー
+========================= */
 
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
   gap: 9px;
+}
+
+#onlineBtn {
+  background: #245b80;
+}
+
+
+/* =========================
+   オンライン
+========================= */
+
+.online-panel {
+  border:
+    2px solid #245b80;
+
+  scroll-margin-top: 15px;
+}
+
+.room-status {
+  padding: 12px;
+
+  margin-bottom: 12px;
+
+  background: #0b101a;
+
+  border-radius: 10px;
+
+  color: #aebbd0;
+}
+
+.online-buttons {
+  display: flex;
+
+  margin-bottom: 10px;
+}
+
+.online-buttons button {
+  width: 100%;
+
+  background: #245b80;
+}
+
+.join-row {
+  display: flex;
+
+  gap: 8px;
+
+  margin-bottom: 14px;
+}
+
+.join-row input {
+  flex: 1;
+
+  margin: 0;
+}
+
+.join-row button {
+  white-space: nowrap;
+
+  background: #31537a;
+}
+
+.room-box {
+  margin-top: 15px;
+
+  padding: 14px;
+
+  background: #0b101a;
+
+  border-radius: 12px;
+}
+
+#roomInfo {
+  margin-bottom: 12px;
+
+  padding: 10px;
+
+  background: #111827;
+
+  border-radius: 9px;
 }
 
 #roomPlayers {
   display: flex;
+
   flex-direction: column;
+
   gap: 7px;
+
+  margin-bottom: 12px;
 }
 
 .player-card {
   background: #192235;
+
   border-radius: 10px;
+
   padding: 10px;
 }
 
 .player-card .player-name {
   font-weight: bold;
+
   font-size: 17px;
 }
 
 .player-card .player-details {
   color: #bbc5d6;
+
   font-size: 13px;
+
+  line-height: 1.6;
 }
 
-#roomInfo {
-  margin-bottom: 12px;
-  padding: 10px;
-  background: #0b101a;
-  border-radius: 9px;
+.danger-button {
+  width: 100%;
+
+  background: #8f2525;
 }
 
-.chat-panel {
-  margin-bottom: 40px;
+
+/* =========================
+   チャット
+========================= */
+
+.chat-box {
+  margin-top: 16px;
 }
 
 #chatLog {
   height: 180px;
+
   overflow-y: auto;
+
   padding: 10px;
+
   background: #070a10;
+
   border-radius: 10px;
+
   margin-bottom: 10px;
 }
 
 .chat-message {
-  padding: 5px;
-  border-bottom: 1px solid #202838;
+  padding: 6px;
+
+  border-bottom:
+    1px solid #202838;
+
+  line-height: 1.5;
 }
 
 .chat-name {
   font-weight: bold;
+
   color: #73b7ff;
 }
 
-.chat-row,
-.join-row {
+.chat-row {
   display: flex;
+
   gap: 8px;
 }
 
-.chat-row input,
-.join-row input {
+.chat-row input {
   flex: 1;
+
   margin: 0;
 }
 
-.chat-row button,
-.join-row button {
+.chat-row button {
   white-space: nowrap;
 }
 
-.online-panel {
-  margin-top: 25px;
-}
 
-#roomStatus {
-  margin-top: 12px;
-  color: #aebbd0;
-}
-
-#levelChoices button {
-  width: 100%;
-  margin: 5px 0;
-}
+/* =========================
+   情報
+========================= */
 
 #infoContent {
   line-height: 1.8;
@@ -289,32 +471,53 @@ main {
 
 #infoContent table {
   width: 100%;
+
   border-collapse: collapse;
 }
 
 #infoContent td,
 #infoContent th {
-  border: 1px solid #344056;
+  border:
+    1px solid #344056;
+
   padding: 7px;
 }
 
+
+/* =========================
+   接続
+========================= */
+
 #connectionStatus {
   text-align: center;
+
   margin-bottom: 12px;
+
   color: #8d9ab0;
 }
 
+
+/* =========================
+   ゲームオーバー
+========================= */
+
 #gameOverScreen {
   text-align: center;
+
   padding-top: 100px;
 }
 
 #gameOverScreen button {
   margin-top: 20px;
+
   background: #8f2525;
 }
 
-/* タブレット */
+
+/* =========================
+   スマホ
+========================= */
+
 @media (max-width: 800px) {
 
   .screen {
@@ -322,11 +525,13 @@ main {
   }
 
   .status-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   .battle-buttons {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   .battle-buttons button:last-child {
@@ -334,17 +539,23 @@ main {
   }
 
   .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   #log {
     height: 210px;
+
     font-size: 16px;
   }
 
 }
 
-/* スマホ */
+
+/* =========================
+   小さいスマホ
+========================= */
+
 @media (max-width: 480px) {
 
   h1 {
@@ -356,15 +567,34 @@ main {
   }
 
   .status-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   .menu-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
   .battle-buttons {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .join-row {
+    flex-direction: column;
+  }
+
+  .join-row button {
+    width: 100%;
+  }
+
+  .chat-row {
+    flex-direction: column;
+  }
+
+  .chat-row button {
+    width: 100%;
   }
 
   #log {
