@@ -8,10 +8,8 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100%;
-
   background: #080b12;
   color: #ffffff;
-
   font-family:
     system-ui,
     -apple-system,
@@ -33,14 +31,10 @@ select {
 button {
   border: 0;
   border-radius: 12px;
-
   padding: 13px 16px;
-
   background: #26334a;
   color: white;
-
   cursor: pointer;
-
   transition:
     transform 0.1s,
     filter 0.15s;
@@ -54,28 +48,27 @@ button:hover {
   filter: brightness(1.15);
 }
 
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
 input,
 select {
   width: 100%;
-
   padding: 12px;
-
-  margin:
-    5px 0 12px;
-
+  margin: 5px 0 12px;
   border-radius: 10px;
-
   border: 1px solid #39445a;
-
   background: #111827;
-
   color: white;
 }
 
 .screen {
   width: 100%;
   min-height: 100vh;
-
   padding: 20px;
 }
 
@@ -105,74 +98,56 @@ main {
 
 .panel {
   width: 100%;
-
   margin: 14px auto;
   padding: 18px;
-
   background: #111827;
-
   border: 1px solid #293449;
-
   border-radius: 16px;
-
   box-shadow:
     0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 
-/* =========================
-   ステータス
-========================= */
+/* ================================= */
+/* プレイヤー情報 */
+/* ================================= */
 
 .status-grid {
   display: grid;
-
   grid-template-columns:
     repeat(4, 1fr);
-
   gap: 8px;
 }
 
 .status-grid > div {
   background: #192235;
-
   border-radius: 10px;
-
   padding: 10px;
-
   text-align: center;
-
   min-height: 58px;
 }
 
 .hp-outer {
   width: 100%;
-
   height: 18px;
-
   margin-top: 12px;
-
   background: #303847;
-
   border-radius: 999px;
-
   overflow: hidden;
 }
 
 .hp-inner {
   width: 100%;
   height: 100%;
-
   background: #35d06f;
-
   transition:
     width 0.25s;
 }
 
 
-/* =========================
-   メッセージ
-========================= */
+/* ================================= */
+/* メッセージ */
+/* ================================= */
 
 .message-panel {
   border: 2px solid #485a78;
@@ -180,51 +155,38 @@ main {
 
 #log {
   width: 100%;
-
   height: 230px;
-
   overflow-y: auto;
-
   padding: 14px;
-
   background: #070a10;
-
   border-radius: 12px;
-
   text-align: left;
-
   font-size: 17px;
-
   line-height: 1.7;
 }
 
 #log div {
   border-bottom:
     1px solid #202838;
-
   padding: 5px 2px;
 }
 
 
-/* =========================
-   戦闘
-========================= */
+/* ================================= */
+/* モンスター戦闘 */
+/* ================================= */
 
 .enemy-box {
   background: #171d2a;
-
   padding: 18px;
-
   border-radius: 14px;
-
   text-align: center;
 }
 
-#enemyName {
+#enemyName,
+#pvpOpponentName {
   font-size: 26px;
-
   font-weight: bold;
-
   margin-bottom: 8px;
 }
 
@@ -234,12 +196,9 @@ main {
 
 .battle-buttons {
   display: grid;
-
   grid-template-columns:
     repeat(5, 1fr);
-
   gap: 8px;
-
   margin-top: 14px;
 }
 
@@ -264,28 +223,59 @@ main {
 }
 
 
-/* =========================
-   レベル
-========================= */
+/* ================================= */
+/* PvP */
+/* ================================= */
+
+#pvpBattleScreen {
+  border: 2px solid #7b3f98;
+}
+
+.pvp-turn {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #0b101a;
+  text-align: center;
+  font-size: 17px;
+}
+
+#pvpTurnText {
+  display: block;
+}
+
+.pvp-available {
+  background: #8f2525 !important;
+}
+
+.pvp-waiting {
+  opacity: 0.6;
+}
+
+
+/* ================================= */
+/* レベルアップ */
+/* ================================= */
 
 #levelChoices button {
   width: 100%;
-
   margin: 5px 0;
 }
 
 
-/* =========================
-   メニュー
-========================= */
+/* ================================= */
+/* メニュー */
+/* ================================= */
 
 .menu-grid {
   display: grid;
-
   grid-template-columns:
     repeat(3, 1fr);
-
   gap: 9px;
+}
+
+#battleStartBtn {
+  background: #8f2525;
 }
 
 #onlineBtn {
@@ -293,123 +283,107 @@ main {
 }
 
 
-/* =========================
-   オンライン
-========================= */
+/* ================================= */
+/* オンライン */
+/* ================================= */
 
 .online-panel {
   border:
     2px solid #245b80;
-
   scroll-margin-top: 15px;
 }
 
 .room-status {
   padding: 12px;
-
   margin-bottom: 12px;
-
   background: #0b101a;
-
   border-radius: 10px;
-
   color: #aebbd0;
 }
 
 .online-buttons {
   display: flex;
-
   margin-bottom: 10px;
 }
 
 .online-buttons button {
   width: 100%;
-
   background: #245b80;
 }
 
 .join-row {
   display: flex;
-
   gap: 8px;
-
   margin-bottom: 14px;
 }
 
 .join-row input {
   flex: 1;
-
   margin: 0;
 }
 
 .join-row button {
   white-space: nowrap;
-
   background: #31537a;
 }
 
+
+/* ================================= */
+/* ルーム */
+/* ================================= */
+
 .room-box {
   margin-top: 15px;
-
   padding: 14px;
-
   background: #0b101a;
-
   border-radius: 12px;
 }
 
 #roomInfo {
   margin-bottom: 12px;
-
   padding: 10px;
-
   background: #111827;
-
   border-radius: 9px;
 }
 
 #roomPlayers {
   display: flex;
-
   flex-direction: column;
-
   gap: 7px;
-
   margin-bottom: 12px;
 }
 
 .player-card {
   background: #192235;
-
   border-radius: 10px;
-
   padding: 10px;
 }
 
 .player-card .player-name {
   font-weight: bold;
-
   font-size: 17px;
 }
 
 .player-card .player-details {
   color: #bbc5d6;
-
   font-size: 13px;
-
   line-height: 1.6;
 }
 
-.danger-button {
+.player-card .pvp-button {
   width: 100%;
-
+  margin-top: 8px;
   background: #8f2525;
 }
 
+.player-card .pvp-button:disabled {
+  background: #555555;
+}
 
-/* =========================
-   チャット
-========================= */
+
+/* ================================= */
+/* チャット */
+/* ================================= */
 
 .chat-box {
   margin-top: 16px;
@@ -417,42 +391,32 @@ main {
 
 #chatLog {
   height: 180px;
-
   overflow-y: auto;
-
   padding: 10px;
-
   background: #070a10;
-
   border-radius: 10px;
-
   margin-bottom: 10px;
 }
 
 .chat-message {
   padding: 6px;
-
   border-bottom:
     1px solid #202838;
-
   line-height: 1.5;
 }
 
 .chat-name {
   font-weight: bold;
-
   color: #73b7ff;
 }
 
 .chat-row {
   display: flex;
-
   gap: 8px;
 }
 
 .chat-row input {
   flex: 1;
-
   margin: 0;
 }
 
@@ -461,9 +425,9 @@ main {
 }
 
 
-/* =========================
-   情報
-========================= */
+/* ================================= */
+/* 情報 */
+/* ================================= */
 
 #infoContent {
   line-height: 1.8;
@@ -471,7 +435,6 @@ main {
 
 #infoContent table {
   width: 100%;
-
   border-collapse: collapse;
 }
 
@@ -479,44 +442,39 @@ main {
 #infoContent th {
   border:
     1px solid #344056;
-
   padding: 7px;
 }
 
 
-/* =========================
-   接続
-========================= */
+/* ================================= */
+/* 接続状態 */
+/* ================================= */
 
 #connectionStatus {
   text-align: center;
-
   margin-bottom: 12px;
-
   color: #8d9ab0;
 }
 
 
-/* =========================
-   ゲームオーバー
-========================= */
+/* ================================= */
+/* ゲームオーバー */
+/* ================================= */
 
 #gameOverScreen {
   text-align: center;
-
   padding-top: 100px;
 }
 
 #gameOverScreen button {
   margin-top: 20px;
-
   background: #8f2525;
 }
 
 
-/* =========================
-   スマホ
-========================= */
+/* ================================= */
+/* スマホ・タブレット */
+/* ================================= */
 
 @media (max-width: 800px) {
 
@@ -545,16 +503,11 @@ main {
 
   #log {
     height: 210px;
-
     font-size: 16px;
   }
 
 }
 
-
-/* =========================
-   小さいスマホ
-========================= */
 
 @media (max-width: 480px) {
 
@@ -595,6 +548,10 @@ main {
 
   .chat-row button {
     width: 100%;
+  }
+
+  .player-card .pvp-button {
+    font-size: 15px;
   }
 
   #log {
