@@ -1,8 +1,8 @@
 const socket = io();
 
-/* =========================
+/* =========================================================
    プレイヤー
-========================= */
+========================================================= */
 
 let player = {
   name: "",
@@ -35,16 +35,16 @@ let player = {
 };
 
 
-/* =========================
-   管理者コード
-========================= */
+/* =========================================================
+   管理者
+========================================================= */
 
 const ADMIN_CODE = "3487";
 
 
-/* =========================
+/* =========================================================
    戦闘
-========================= */
+========================================================= */
 
 let enemy = null;
 let defending = false;
@@ -55,9 +55,17 @@ let pvpOpponent = null;
 let pvpMyTurn = false;
 
 
-/* =========================
+/* =========================================================
+   オンライン状態
+========================================================= */
+
+let onlineConnected = false;
+let currentRoomId = null;
+
+
+/* =========================================================
    モンスター
-========================= */
+========================================================= */
 
 const monsters = [
   {
@@ -98,9 +106,9 @@ const monsters = [
 ];
 
 
-/* =========================
+/* =========================================================
    ボス
-========================= */
+========================================================= */
 
 const boss = {
   name: "懸賞金王",
@@ -112,9 +120,9 @@ const boss = {
 };
 
 
-/* =========================
+/* =========================================================
    スキル
-========================= */
+========================================================= */
 
 const skills = [
   {
@@ -128,16 +136,16 @@ const skills = [
 ];
 
 
-/* =========================
+/* =========================================================
    DOM
-========================= */
+========================================================= */
 
 const $ = id => document.getElementById(id);
 
 
-/* =========================
+/* =========================================================
    ログ
-========================= */
+========================================================= */
 
 function logMessage(message) {
 
@@ -156,13 +164,14 @@ function logMessage(message) {
     log.removeChild(log.firstChild);
   }
 
-  log.scrollTop = log.scrollHeight;
+  log.scrollTop =
+    log.scrollHeight;
 }
 
 
-/* =========================
-   保存
-========================= */
+/* =========================================================
+   セーブ
+========================================================= */
 
 function saveGame() {
 
@@ -183,9 +192,9 @@ function saveGame() {
 }
 
 
-/* =========================
-   読み込み
-========================= */
+/* =========================================================
+   ロード
+========================================================= */
 
 function loadGame() {
 
@@ -200,6 +209,13 @@ function loadGame() {
 
     const data =
       JSON.parse(saved);
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+      return;
+    }
 
     player = {
       ...player,
@@ -216,9 +232,9 @@ function loadGame() {
 }
 
 
-/* =========================
+/* =========================================================
    ステータス表示
-========================= */
+========================================================= */
 
 function updateStatus() {
 
@@ -239,7 +255,10 @@ function updateStatus() {
 
   if ($("hp")) {
     $("hp").textContent =
-      Math.max(0, player.hp);
+      Math.max(
+        0,
+        player.hp
+      );
   }
 
   if ($("maxHp")) {
@@ -282,85 +301,157 @@ function updateStatus() {
       player.defeats;
   }
 
-  const hpBar = $("hpBar");
+  const hpBar =
+    $("hpBar");
 
   if (hpBar) {
 
     const percent =
       player.maxHp > 0
-        ? (player.hp / player.maxHp) * 100
+        ? player.hp /
+          player.maxHp *
+          100
         : 0;
 
     hpBar.style.width =
       Math.max(
         0,
-        Math.min(100, percent)
+        Math.min(
+          100,
+          percent
+        )
       ) + "%";
   }
 }
 
 
-/* =========================
-   オンライン送信
-========================= */
+/* =========================================================
+   オンライン接続状態表示
+========================================================= */
+
+function updateOnlineStatus(text, connected) {
+
+  onlineConnected =
+    connected;
+
+  const status =
+    $("roomStatus");
+
+  if (status) {
+    status.textContent =
+      text;
+  }
+}
+
+
+/* =========================================================
+   オンラインプレイヤー更新
+========================================================= */
 
 function sendPlayerUpdate() {
 
-  if (!socket) return;
+  if (
+    !socket ||
+    !socket.connected ||
+    !currentRoomId
+  ) {
+    return;
+  }
 
   socket.emit(
     "playerUpdate",
     {
-      name: player.name,
-      job: player.job,
-      level: player.level,
-      hp: player.hp,
-      maxHp: player.maxHp,
-      attack: player.attack,
-      area: player.area,
-      bounty: player.bounty
+      name:
+        player.name,
+
+      job:
+        player.job,
+
+      level:
+        player.level,
+
+      hp:
+        player.hp,
+
+      maxHp:
+        player.maxHp,
+
+      attack:
+        player.attack,
+
+      xp:
+        player.xp,
+
+      money:
+        player.money,
+
+      bounty:
+        player.bounty,
+
+      weapon:
+        player.weapon,
+
+      area:
+        player.area,
+
+      defeats:
+        player.defeats,
+
+      skillCount:
+        player.skillCount
     }
   );
 }
 
 
-/* =========================
+/* =========================================================
    パネル
-========================= */
+========================================================= */
 
 function showPanel(id) {
 
-  const panel = $(id);
+  const panel =
+    $(id);
 
   if (!panel) return;
 
-  panel.classList.remove("hidden");
+  panel.classList.remove(
+    "hidden"
+  );
+
   panel.style.display = "";
 }
 
 
 function hidePanel(id) {
 
-  const panel = $(id);
+  const panel =
+    $(id);
 
   if (!panel) return;
 
-  panel.classList.add("hidden");
+  panel.classList.add(
+    "hidden"
+  );
 }
 
 
-/* =========================
+/* =========================================================
    戦闘判定
-========================= */
+========================================================= */
 
 function isBusy() {
-  return battleBusy || pvpBattle;
+
+  return (
+    battleBusy ||
+    pvpBattle
+  );
 }
 
 
-/* =========================
-   敵戦闘開始
-========================= */
+/* =========================================================
+   通常戦闘開始
+========================================================= */
 
 function startBattle() {
 
@@ -383,7 +474,8 @@ function startBattle() {
 
   enemy = {
 
-    name: base.name,
+    name:
+      base.name,
 
     hp:
       base.hp +
@@ -409,6 +501,7 @@ function startBattle() {
   };
 
   battleBusy = true;
+
   defending = false;
 
   showPanel(
@@ -423,28 +516,28 @@ function startBattle() {
 }
 
 
-/* =========================
+/* =========================================================
    敵表示
-========================= */
+========================================================= */
 
 function updateEnemyDisplay() {
 
   if (!enemy) return;
 
   if ($("enemyName")) {
-
     $("enemyName").textContent =
       enemy.name;
   }
 
   if ($("enemyHp")) {
-
     $("enemyHp").textContent =
-      Math.max(0, enemy.hp);
+      Math.max(
+        0,
+        enemy.hp
+      );
   }
 
   if ($("enemyMaxHp")) {
-
     $("enemyMaxHp").textContent =
       enemy.maxHp;
   }
@@ -453,27 +546,36 @@ function updateEnemyDisplay() {
 
     const percent =
       enemy.maxHp > 0
-        ? enemy.hp / enemy.maxHp * 100
+        ? enemy.hp /
+          enemy.maxHp *
+          100
         : 0;
 
     $("enemyHpBar").style.width =
       Math.max(
         0,
-        Math.min(100, percent)
+        Math.min(
+          100,
+          percent
+        )
       ) + "%";
   }
 }
 
 
-/* =========================
-   攻撃
-========================= */
+/* =========================================================
+   通常攻撃
+========================================================= */
 
 function attackEnemy() {
 
-  if (!battleBusy || !enemy) return;
-
-  if (enemy.hp <= 0) return;
+  if (
+    !battleBusy ||
+    !enemy ||
+    enemy.hp <= 0
+  ) {
+    return;
+  }
 
   defending = false;
 
@@ -505,13 +607,18 @@ function attackEnemy() {
 }
 
 
-/* =========================
+/* =========================================================
    防御
-========================= */
+========================================================= */
 
 function defend() {
 
-  if (!battleBusy || !enemy) return;
+  if (
+    !battleBusy ||
+    !enemy
+  ) {
+    return;
+  }
 
   defending = true;
 
@@ -523,17 +630,27 @@ function defend() {
 }
 
 
-/* =========================
+/* =========================================================
    敵攻撃
-========================= */
+========================================================= */
 
 function enemyAttack() {
 
-  if (!enemy || !battleBusy) return;
+  if (
+    !enemy ||
+    !battleBusy
+  ) {
+    return;
+  }
 
   setTimeout(() => {
 
-    if (!enemy || !battleBusy) return;
+    if (
+      !enemy ||
+      !battleBusy
+    ) {
+      return;
+    }
 
     let damage =
       enemy.attack +
@@ -558,13 +675,16 @@ function enemyAttack() {
 
     defending = false;
 
-    player.hp -= damage;
+    player.hp -=
+      damage;
 
     logMessage(
       `💥 ${enemy.name}の攻撃！${damage}ダメージ！`
     );
 
     updateStatus();
+
+    saveGame();
 
     if (player.hp <= 0) {
 
@@ -579,23 +699,31 @@ function enemyAttack() {
 }
 
 
-/* =========================
+/* =========================================================
    スキル
-========================= */
+========================================================= */
 
 function useSkill() {
 
-  if (!battleBusy || !enemy) return;
+  if (
+    !battleBusy ||
+    !enemy ||
+    enemy.hp <= 0
+  ) {
+    return;
+  }
 
-  if (enemy.hp <= 0) return;
-
-  const skill =
-    skills[
+  const index =
+    Math.max(
+      0,
       Math.min(
         player.skillCount - 1,
         skills.length - 1
       )
-    ];
+    );
+
+  const skill =
+    skills[index];
 
   const multiplier =
     skill
@@ -614,7 +742,8 @@ function useSkill() {
       )
     );
 
-  enemy.hp -= damage;
+  enemy.hp -=
+    damage;
 
   logMessage(
     `✨ ${skill ? skill.name : "必殺技"}！${damage}ダメージ！`
@@ -633,9 +762,9 @@ function useSkill() {
 }
 
 
-/* =========================
-   調べる
-========================= */
+/* =========================================================
+   敵を調べる
+========================================================= */
 
 function inspectEnemy() {
 
@@ -647,21 +776,25 @@ function inspectEnemy() {
 }
 
 
-/* =========================
-   逃げる
-========================= */
+/* =========================================================
+   逃走
+========================================================= */
 
 function runBattle() {
 
   if (!battleBusy) return;
 
-  if (Math.random() < 0.75) {
+  if (
+    Math.random() <
+    0.75
+  ) {
 
     logMessage(
       "🏃 戦闘から逃げた！"
     );
 
     battleBusy = false;
+
     enemy = null;
 
     hidePanel(
@@ -679,9 +812,9 @@ function runBattle() {
 }
 
 
-/* =========================
-   勝利
-========================= */
+/* =========================================================
+   戦闘勝利
+========================================================= */
 
 function winBattle() {
 
@@ -691,6 +824,7 @@ function winBattle() {
     enemy;
 
   battleBusy = false;
+
   enemy = null;
 
   hidePanel(
@@ -732,15 +866,17 @@ function winBattle() {
 }
 
 
-/* =========================
+/* =========================================================
    レベルアップ
-========================= */
+========================================================= */
 
 function checkLevelUp() {
 
   while (
-    player.level < player.maxLevel &&
-    player.xp >= player.level * 100
+    player.level <
+      player.maxLevel &&
+    player.xp >=
+      player.level * 100
   ) {
 
     player.xp -=
@@ -759,13 +895,17 @@ function checkLevelUp() {
 }
 
 
-/* =========================
+/* =========================================================
    HP強化
-========================= */
+========================================================= */
 
 function levelUpHp() {
 
-  if (player.level <= 1) return;
+  if (
+    player.level <= 1
+  ) {
+    return;
+  }
 
   player.maxHp += 20;
 
@@ -783,16 +923,22 @@ function levelUpHp() {
   updateStatus();
 
   saveGame();
+
+  sendPlayerUpdate();
 }
 
 
-/* =========================
+/* =========================================================
    攻撃強化
-========================= */
+========================================================= */
 
 function levelUpAttack() {
 
-  if (player.level <= 1) return;
+  if (
+    player.level <= 1
+  ) {
+    return;
+  }
 
   player.attack += 5;
 
@@ -807,12 +953,14 @@ function levelUpAttack() {
   updateStatus();
 
   saveGame();
+
+  sendPlayerUpdate();
 }
 
 
-/* =========================
+/* =========================================================
    スキル強化
-========================= */
+========================================================= */
 
 function levelUpSkill() {
 
@@ -833,12 +981,14 @@ function levelUpSkill() {
   updateStatus();
 
   saveGame();
+
+  sendPlayerUpdate();
 }
 
 
-/* =========================
+/* =========================================================
    町
-========================= */
+========================================================= */
 
 function goTown() {
 
@@ -863,7 +1013,8 @@ function goTown() {
     return;
   }
 
-  player.area = "町";
+  player.area =
+    "町";
 
   player.hp =
     player.maxHp;
@@ -873,10 +1024,13 @@ function goTown() {
   );
 
   logMessage(
-    `❤️ 宿で休んだ！HPが${player.maxHp}まで全回復した！`
+    `❤️ HPが${player.maxHp}まで全回復した！`
   );
 
-  if (Math.random() < 0.35) {
+  if (
+    Math.random() <
+    0.35
+  ) {
 
     const gift =
       20 +
@@ -884,7 +1038,8 @@ function goTown() {
         Math.random() * 51
       );
 
-    player.money += gift;
+    player.money +=
+      gift;
 
     logMessage(
       `🎁 町の人から${gift}円もらった！`
@@ -899,9 +1054,9 @@ function goTown() {
 }
 
 
-/* =========================
+/* =========================================================
    都市
-========================= */
+========================================================= */
 
 function goCity() {
 
@@ -941,9 +1096,9 @@ function goCity() {
 }
 
 
-/* =========================
+/* =========================================================
    回復
-========================= */
+========================================================= */
 
 function heal() {
 
@@ -971,32 +1126,28 @@ function heal() {
       "❤️ 無料で全回復した！"
     );
 
-    updateStatus();
+  } else {
 
-    saveGame();
+    if (
+      player.money < 30
+    ) {
 
-    sendPlayerUpdate();
+      logMessage(
+        "💰 回復には30円必要です！"
+      );
 
-    return;
-  }
+      return;
+    }
 
-  if (player.money < 30) {
+    player.money -= 30;
+
+    player.hp =
+      player.maxHp;
 
     logMessage(
-      "💰 回復には30円必要です！"
+      "❤️ 30円払って全回復した！"
     );
-
-    return;
   }
-
-  player.money -= 30;
-
-  player.hp =
-    player.maxHp;
-
-  logMessage(
-    "❤️ 30円払って全回復した！"
-  );
 
   updateStatus();
 
@@ -1006,9 +1157,9 @@ function heal() {
 }
 
 
-/* =========================
+/* =========================================================
    ボス
-========================= */
+========================================================= */
 
 function startBoss() {
 
@@ -1035,7 +1186,8 @@ function startBoss() {
 
   enemy = {
 
-    name: boss.name,
+    name:
+      boss.name,
 
     hp:
       boss.hp +
@@ -1049,14 +1201,18 @@ function startBoss() {
       boss.attack +
       player.level * 2,
 
-    xp: boss.xp,
+    xp:
+      boss.xp,
 
-    money: boss.money,
+    money:
+      boss.money,
 
-    bounty: boss.bounty
+    bounty:
+      boss.bounty
   };
 
   battleBusy = true;
+
   defending = false;
 
   showPanel(
@@ -1071,9 +1227,9 @@ function startBoss() {
 }
 
 
-/* =========================
+/* =========================================================
    ガチャ
-========================= */
+========================================================= */
 
 function gacha() {
 
@@ -1083,23 +1239,24 @@ function gacha() {
       "管理者の剣";
 
     player.attack =
-      Math.max(
-        player.attack,
-        999999
-      );
+      player.maxAttack;
 
     logMessage(
-      "👑 管理者なので管理者の剣を取得！"
+      "👑 管理者の剣を取得！"
     );
 
     updateStatus();
 
     saveGame();
 
+    sendPlayerUpdate();
+
     return;
   }
 
-  if (player.money < 100) {
+  if (
+    player.money < 100
+  ) {
 
     logMessage(
       "💰 ガチャには100円必要です！"
@@ -1131,6 +1288,7 @@ function gacha() {
       name: "伝説の剣",
       attack: 250
     }
+
   ];
 
   const reward =
@@ -1163,72 +1321,41 @@ function gacha() {
 
 
 /* =========================================================
-   管理者機能
+   管理者
 ========================================================= */
-
-
-/* =========================
-   管理者MAX処理
-========================= */
 
 function activateAdmin() {
 
   player.admin = true;
-
-  /* レベルMAX */
 
   player.level =
     player.maxLevel;
 
   player.xp = 0;
 
-
-  /* HP MAX */
-
   player.maxHp =
     999999;
 
   player.hp =
-    999999;
-
-
-  /* 攻撃 MAX */
+    player.maxHp;
 
   player.attack =
-    999999;
-
-
-  /* スキル MAX */
+    player.maxAttack;
 
   player.skillCount =
     player.maxSkillCount;
 
-
-  /* お金 MAX */
-
   player.money =
     999999999;
-
-
-  /* 懸賞金 MAX */
 
   player.bounty =
     999999999;
 
-
-  /* 撃破数 MAX */
-
   player.defeats =
     999999;
 
-
-  /* 武器 */
-
   player.weapon =
     "管理者の剣";
-
-
-  /* 管理者なら町・都市・ボスも解放 */
 
   logMessage(
     "🔓 管理者認証成功！"
@@ -1251,7 +1378,7 @@ function activateAdmin() {
   );
 
   logMessage(
-    "✨ スキルレベルMAX！"
+    "✨ スキルMAX！"
   );
 
   logMessage(
@@ -1276,23 +1403,23 @@ function activateAdmin() {
 
   sendPlayerUpdate();
 
-  /* 管理者パネルがある場合は表示 */
-
   if ($("adminLoginArea")) {
+
     $("adminLoginArea")
       .classList.add("hidden");
   }
 
   if ($("adminControls")) {
+
     $("adminControls")
       .classList.remove("hidden");
   }
 }
 
 
-/* =========================
-   管理者コード入力
-========================= */
+/* =========================================================
+   管理者ログイン
+========================================================= */
 
 function adminLogin() {
 
@@ -1302,14 +1429,10 @@ function adminLogin() {
   let code = "";
 
   if (input) {
+
     code =
       input.value.trim();
   }
-
-  /*
-    入力欄が存在しない場合でも
-    promptで入力できるようにする
-  */
 
   if (!code) {
 
@@ -1318,7 +1441,9 @@ function adminLogin() {
         "🔐 管理者コードを入力してください"
       );
 
-    if (code === null) {
+    if (
+      code === null
+    ) {
       return;
     }
 
@@ -1326,12 +1451,9 @@ function adminLogin() {
       String(code).trim();
   }
 
-
-  /* =========================
-     コード確認
-  ========================== */
-
-  if (code === ADMIN_CODE) {
+  if (
+    code === ADMIN_CODE
+  ) {
 
     activateAdmin();
 
@@ -1345,11 +1467,6 @@ function adminLogin() {
 
     return;
   }
-
-
-  /* =========================
-     間違い
-  ========================== */
 
   logMessage(
     "❌ 管理者コードが違います！"
@@ -1365,15 +1482,11 @@ function adminLogin() {
 }
 
 
-/* =========================
-   管理者ボタン
-========================= */
+/* =========================================================
+   管理者パネル
+========================================================= */
 
 function openAdminPanel() {
-
-  /*
-    まず管理者になっているか確認
-  */
 
   if (player.admin) {
 
@@ -1384,11 +1497,13 @@ function openAdminPanel() {
       );
 
       if ($("adminLoginArea")) {
+
         $("adminLoginArea")
           .classList.add("hidden");
       }
 
       if ($("adminControls")) {
+
         $("adminControls")
           .classList.remove("hidden");
       }
@@ -1403,11 +1518,6 @@ function openAdminPanel() {
     return;
   }
 
-
-  /*
-    パネルが存在する場合
-  */
-
   if ($("adminPanel")) {
 
     showPanel(
@@ -1415,11 +1525,13 @@ function openAdminPanel() {
     );
 
     if ($("adminLoginArea")) {
+
       $("adminLoginArea")
         .classList.remove("hidden");
     }
 
     if ($("adminControls")) {
+
       $("adminControls")
         .classList.add("hidden");
     }
@@ -1427,18 +1539,13 @@ function openAdminPanel() {
     return;
   }
 
-
-  /*
-    パネルがない場合でも動作
-  */
-
   adminLogin();
 }
 
 
-/* =========================
+/* =========================================================
    管理者レベルMAX
-========================= */
+========================================================= */
 
 function adminMaxLevel() {
 
@@ -1455,18 +1562,20 @@ function adminMaxLevel() {
   player.xp = 0;
 
   logMessage(
-    "👑 レベル100 MAX！"
+    `👑 レベル${player.maxLevel} MAX！`
   );
 
   updateStatus();
 
   saveGame();
+
+  sendPlayerUpdate();
 }
 
 
-/* =========================
+/* =========================================================
    管理者ステータスMAX
-========================= */
+========================================================= */
 
 function adminMaxStatus() {
 
@@ -1481,10 +1590,10 @@ function adminMaxStatus() {
     999999;
 
   player.hp =
-    999999;
+    player.maxHp;
 
   player.attack =
-    999999;
+    player.maxAttack;
 
   player.skillCount =
     player.maxSkillCount;
@@ -1501,9 +1610,9 @@ function adminMaxStatus() {
 }
 
 
-/* =========================
+/* =========================================================
    管理者全部MAX
-========================= */
+========================================================= */
 
 function adminMaxAll() {
 
@@ -1519,21 +1628,23 @@ function adminMaxAll() {
 
 
 /* =========================================================
-   PvP
+   PvP開始
 ========================================================= */
 
 function startPvP(opponent) {
 
-  if (!opponent) return;
+  if (!opponent) {
+    return;
+  }
 
-  if (isBusy()) return;
+  if (isBusy()) {
+    return;
+  }
 
   pvpBattle = true;
 
   pvpOpponent =
     opponent;
-
-  pvpMyTurn = true;
 
   showPanel(
     "pvpBattleScreen"
@@ -1547,9 +1658,15 @@ function startPvP(opponent) {
 }
 
 
+/* =========================================================
+   PvP表示
+========================================================= */
+
 function updatePvPDisplay() {
 
-  if (!pvpOpponent) return;
+  if (!pvpOpponent) {
+    return;
+  }
 
   if ($("pvpOpponentName")) {
 
@@ -1562,7 +1679,10 @@ function updatePvPDisplay() {
 
     $("pvpOpponentHp")
       .textContent =
-      pvpOpponent.hp;
+      Math.max(
+        0,
+        pvpOpponent.hp
+      );
   }
 
   if ($("pvpOpponentMaxHp")) {
@@ -1585,7 +1705,10 @@ function updatePvPDisplay() {
       .style.width =
       Math.max(
         0,
-        Math.min(100, percent)
+        Math.min(
+          100,
+          percent
+        )
       ) + "%";
   }
 
@@ -1600,23 +1723,21 @@ function updatePvPDisplay() {
 }
 
 
+/* =========================================================
+   PvP攻撃
+========================================================= */
+
 function pvpAttack() {
 
-  if (!pvpBattle) return;
-
-  if (!pvpMyTurn) return;
-
-  const damage =
-    player.attack +
-    Math.floor(
-      Math.random() * 6
-    );
+  if (
+    !pvpBattle ||
+    !pvpMyTurn
+  ) {
+    return;
+  }
 
   socket.emit(
-    "pvpAttack",
-    {
-      damage
-    }
+    "pvpAttack"
   );
 
   pvpMyTurn = false;
@@ -1625,11 +1746,18 @@ function pvpAttack() {
 }
 
 
+/* =========================================================
+   PvP防御
+========================================================= */
+
 function pvpDefend() {
 
-  if (!pvpBattle) return;
-
-  if (!pvpMyTurn) return;
+  if (
+    !pvpBattle ||
+    !pvpMyTurn
+  ) {
+    return;
+  }
 
   socket.emit(
     "pvpDefend"
@@ -1641,35 +1769,38 @@ function pvpDefend() {
 }
 
 
+/* =========================================================
+   PvPスキル
+========================================================= */
+
 function pvpSkill() {
 
-  if (!pvpBattle) return;
+  if (
+    !pvpBattle ||
+    !pvpMyTurn
+  ) {
+    return;
+  }
 
-  if (!pvpMyTurn) return;
-
-  const skill =
-    skills[
+  const index =
+    Math.max(
+      0,
       Math.min(
         player.skillCount - 1,
         skills.length - 1
       )
-    ];
-
-  const multiplier =
-    skill
-      ? skill.multiplier
-      : 2;
-
-  const damage =
-    Math.floor(
-      player.attack *
-      multiplier
     );
+
+  const skill =
+    skills[index];
 
   socket.emit(
     "pvpSkill",
     {
-      damage
+      skillName:
+        skill
+          ? skill.name
+          : "斬撃"
     }
   );
 
@@ -1679,9 +1810,15 @@ function pvpSkill() {
 }
 
 
+/* =========================================================
+   PvP調査
+========================================================= */
+
 function pvpInspect() {
 
-  if (!pvpOpponent) return;
+  if (!pvpOpponent) {
+    return;
+  }
 
   logMessage(
     `👁️ ${pvpOpponent.name} HP:${pvpOpponent.hp}/${pvpOpponent.maxHp}`
@@ -1689,17 +1826,25 @@ function pvpInspect() {
 }
 
 
+/* =========================================================
+   PvP逃走
+========================================================= */
+
 function pvpRun() {
 
-  if (!pvpBattle) return;
+  if (!pvpBattle) {
+    return;
+  }
 
   socket.emit(
     "pvpRun"
   );
-
-  endPvP();
 }
 
+
+/* =========================================================
+   PvP終了
+========================================================= */
 
 function endPvP() {
 
@@ -1723,10 +1868,21 @@ function endPvP() {
 
 function createRoom() {
 
+  if (!socket.connected) {
+
+    logMessage(
+      "🔴 オンライン未接続です。"
+    );
+
+    return;
+  }
+
   socket.emit(
     "createRoom",
     {
-      name: player.name
+      name:
+        player.name ||
+        "勇者"
     }
   );
 }
@@ -1737,10 +1893,14 @@ function joinRoom() {
   const input =
     $("roomCodeInput");
 
-  if (!input) return;
+  if (!input) {
+    return;
+  }
 
   const code =
-    input.value.trim();
+    input.value
+      .trim()
+      .toUpperCase();
 
   if (!code) {
 
@@ -1751,11 +1911,24 @@ function joinRoom() {
     return;
   }
 
+  if (!socket.connected) {
+
+    logMessage(
+      "🔴 オンライン未接続です。"
+    );
+
+    return;
+  }
+
   socket.emit(
     "joinRoom",
     {
-      code,
-      name: player.name
+      roomId:
+        code,
+
+      name:
+        player.name ||
+        "勇者"
     }
   );
 }
@@ -1763,22 +1936,35 @@ function joinRoom() {
 
 function leaveRoom() {
 
-  socket.emit(
-    "leaveRoom"
-  );
+  if (
+    socket.connected &&
+    currentRoomId
+  ) {
 
-  if ($("roomStatus")) {
-    $("roomStatus").textContent =
-      "未接続";
+    socket.emit(
+      "leaveRoom"
+    );
   }
 
+  currentRoomId =
+    null;
+
+  updateOnlineStatus(
+    "未接続",
+    onlineConnected
+  );
+
   if ($("roomInfo")) {
-    $("roomInfo").textContent =
+
+    $("roomInfo")
+      .textContent =
       "";
   }
 
   if ($("roomPlayers")) {
-    $("roomPlayers").textContent =
+
+    $("roomPlayers")
+      .innerHTML =
       "";
   }
 }
@@ -1789,6 +1975,23 @@ function openOnline() {
   showPanel(
     "onlinePanel"
   );
+
+  if (socket.connected) {
+
+    updateOnlineStatus(
+      currentRoomId
+        ? "🟢 ルーム参加中"
+        : "🟢 オンライン接続済み",
+      true
+    );
+
+  } else {
+
+    updateOnlineStatus(
+      "🔴 オンライン未接続",
+      false
+    );
+  }
 }
 
 
@@ -1800,27 +2003,38 @@ function closeOnline() {
 }
 
 
-/* =========================
+/* =========================================================
    チャット
-========================= */
+========================================================= */
 
 function sendChat() {
 
   const input =
     $("chatInput");
 
-  if (!input) return;
+  if (!input) {
+    return;
+  }
 
   const message =
     input.value.trim();
 
-  if (!message) return;
+  if (!message) {
+    return;
+  }
+
+  if (!currentRoomId) {
+
+    logMessage(
+      "⚠️ 先にルームへ参加してください。"
+    );
+
+    return;
+  }
 
   socket.emit(
-    "chatMessage",
-    {
-      message
-    }
+    "chat",
+    message
   );
 
   input.value = "";
@@ -1835,10 +2049,14 @@ function addChatMessage(
   const chat =
     $("chatLog");
 
-  if (!chat) return;
+  if (!chat) {
+    return;
+  }
 
   const line =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   line.textContent =
     `${name}: ${message}`;
@@ -1851,169 +2069,694 @@ function addChatMessage(
 
 
 /* =========================================================
-   Socket.IO
+   Socket.IO 接続
+========================================================= */
+
+socket.on(
+  "connect",
+  () => {
+
+    onlineConnected =
+      true;
+
+    updateOnlineStatus(
+      "🟢 オンライン接続済み",
+      true
+    );
+
+    logMessage(
+      "🟢 オンラインサーバーに接続しました！"
+    );
+
+    console.log(
+      "Socket.IO 接続成功:",
+      socket.id
+    );
+  }
+);
+
+
+socket.on(
+  "onlineReady",
+  () => {
+
+    onlineConnected =
+      true;
+
+    updateOnlineStatus(
+      currentRoomId
+        ? "🟢 ルーム参加中"
+        : "🟢 オンライン接続済み",
+      true
+    );
+
+    console.log(
+      "オンライン準備完了"
+    );
+  }
+);
+
+
+socket.on(
+  "disconnect",
+  reason => {
+
+    onlineConnected =
+      false;
+
+    currentRoomId =
+      null;
+
+    updateOnlineStatus(
+      "🔴 オンライン未接続",
+      false
+    );
+
+    logMessage(
+      "🔴 オンラインサーバーから切断されました。"
+    );
+
+    console.log(
+      "Socket.IO切断:",
+      reason
+    );
+  }
+);
+
+
+socket.on(
+  "connect_error",
+  error => {
+
+    onlineConnected =
+      false;
+
+    updateOnlineStatus(
+      "🔴 オンライン未接続",
+      false
+    );
+
+    console.error(
+      "Socket.IO接続エラー:",
+      error
+    );
+
+    logMessage(
+      "❌ オンライン接続に失敗しました。"
+    );
+  }
+);
+
+
+/* =========================================================
+   ルーム作成成功
 ========================================================= */
 
 socket.on(
   "roomCreated",
   data => {
 
-    if ($("roomStatus")) {
-      $("roomStatus").textContent =
-        "ルーム作成済み";
-    }
+    currentRoomId =
+      data.roomId;
+
+    updateOnlineStatus(
+      "🟢 ルーム参加中",
+      true
+    );
 
     if ($("roomInfo")) {
-      $("roomInfo").textContent =
-        `ルームコード：${data.code}`;
+
+      $("roomInfo")
+        .textContent =
+        `ルームコード：${data.roomId}`;
     }
 
     logMessage(
-      `🏠 ルームを作成しました！コード：${data.code}`
+      `🏠 ルームを作成しました！コード：${data.roomId}`
+    );
+
+    if (data.player) {
+
+      player = {
+        ...player,
+        ...data.player
+      };
+
+      updateStatus();
+    }
+
+    renderRoomPlayers(
+      data.players || []
     );
   }
 );
 
+
+/* =========================================================
+   ルーム参加成功
+========================================================= */
 
 socket.on(
   "roomJoined",
   data => {
 
-    if ($("roomStatus")) {
-      $("roomStatus").textContent =
-        "ルーム参加中";
-    }
+    currentRoomId =
+      data.roomId;
+
+    updateOnlineStatus(
+      "🟢 ルーム参加中",
+      true
+    );
 
     if ($("roomInfo")) {
-      $("roomInfo").textContent =
-        `ルームコード：${data.code}`;
+
+      $("roomInfo")
+        .textContent =
+        `ルームコード：${data.roomId}`;
     }
 
     logMessage(
-      "🚪 ルームに参加しました！"
+      `🚪 ルーム ${data.roomId} に参加しました！`
+    );
+
+    if (data.player) {
+
+      player = {
+        ...player,
+        ...data.player
+      };
+
+      updateStatus();
+    }
+
+    renderRoomPlayers(
+      data.players || []
     );
   }
 );
 
 
+/* =========================================================
+   ルームプレイヤー一覧
+========================================================= */
+
+function renderRoomPlayers(players) {
+
+  const container =
+    $("roomPlayers");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  players.forEach(
+    p => {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+      div.className =
+        "room-player";
+
+      div.textContent =
+        `${p.name}　Lv.${p.level}　HP:${p.hp}/${p.maxHp}`;
+
+      container.appendChild(
+        div
+      );
+    }
+  );
+}
+
+
 socket.on(
-  "roomPlayers",
+  "roomPlayersUpdate",
   players => {
 
-    const container =
-      $("roomPlayers");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    players.forEach(
-      p => {
-
-        const div =
-          document.createElement(
-            "div"
-          );
-
-        div.textContent =
-          `${p.name} Lv.${p.level}`;
-
-        container.appendChild(div);
-      }
+    renderRoomPlayers(
+      players
     );
   }
 );
 
 
+/* =========================================================
+   ルームエラー
+========================================================= */
+
 socket.on(
-  "chatMessage",
+  "roomError",
+  message => {
+
+    logMessage(
+      `❌ ${message}`
+    );
+
+    alert(
+      `❌ ${message}`
+    );
+  }
+);
+
+
+/* =========================================================
+   ルーム退出
+========================================================= */
+
+socket.on(
+  "leftRoom",
+  () => {
+
+    currentRoomId =
+      null;
+
+    updateOnlineStatus(
+      "🟢 オンライン接続済み",
+      socket.connected
+    );
+
+    if ($("roomInfo")) {
+
+      $("roomInfo")
+        .textContent =
+        "";
+    }
+
+    if ($("roomPlayers")) {
+
+      $("roomPlayers")
+        .innerHTML =
+        "";
+    }
+
+    logMessage(
+      "🚪 ルームから退出しました。"
+    );
+  }
+);
+
+
+/* =========================================================
+   公開チャット
+========================================================= */
+
+socket.on(
+  "publicMessage",
   data => {
+
+    if (!data) {
+      return;
+    }
 
     addChatMessage(
-      data.name,
-      data.message
+      data.name ||
+        "勇者",
+
+      data.message ||
+        ""
     );
   }
 );
 
 
+/* =========================================================
+   オンライン戦闘ログ
+========================================================= */
+
 socket.on(
-  "pvpChallenge",
+  "onlineBattleLog",
   data => {
+
+    if (!data) {
+      return;
+    }
+
+    logMessage(
+      `⚔️ ${data.name || "勇者"}: ${data.message || ""}`
+    );
+  }
+);
+
+
+/* =========================================================
+   PvP申請
+========================================================= */
+
+socket.on(
+  "pvpRequest",
+  data => {
+
+    if (!data) {
+      return;
+    }
 
     const ok =
       confirm(
-        `${data.name}からPvP対戦を申し込まれました。\n対戦しますか？`
+        `${data.fromName || "プレイヤー"}からPvP対戦を申し込まれました。\n\n対戦しますか？`
       );
 
     if (ok) {
 
       socket.emit(
         "pvpAccept",
-        {
-          opponentId:
-            data.id
-        }
+        data.fromId
       );
 
     } else {
 
       socket.emit(
         "pvpReject",
-        {
-          opponentId:
-            data.id
-        }
+        data.fromId
       );
     }
   }
 );
 
 
+/* =========================================================
+   PvP申請送信
+========================================================= */
+
 socket.on(
-  "pvpStart",
+  "pvpChallengeSent",
   data => {
 
-    startPvP(
-      data.opponent
+    logMessage(
+      `⚔️ ${data.targetName}へPvP対戦を申し込みました。`
+    );
+  }
+);
+
+
+/* =========================================================
+   PvP開始
+========================================================= */
+
+socket.on(
+  "pvpStarted",
+  data => {
+
+    if (!data) {
+      return;
+    }
+
+    pvpBattle = true;
+
+    pvpMyTurn =
+      !!data.yourTurn;
+
+    pvpOpponent = {
+      id:
+        data.opponentId,
+
+      name:
+        data.opponentName,
+
+      hp:
+        100,
+
+      maxHp:
+        100
+    };
+
+    showPanel(
+      "pvpBattleScreen"
+    );
+
+    updatePvPDisplay();
+
+    logMessage(
+      `⚔️ ${data.opponentName}とのPvPが始まった！`
+    );
+  }
+);
+
+
+/* =========================================================
+   PvP攻撃結果
+========================================================= */
+
+socket.on(
+  "pvpAttackResult",
+  data => {
+
+    if (!data) {
+      return;
+    }
+
+    if (
+      pvpOpponent &&
+      data.targetId ===
+        pvpOpponent.id
+    ) {
+
+      pvpOpponent.hp =
+        data.targetHp;
+
+      pvpOpponent.maxHp =
+        data.targetMaxHp;
+    }
+
+    if (
+      data.attackerId ===
+      socket.id
+    ) {
+
+      logMessage(
+        `⚔️ ${data.targetName}に${data.damage}ダメージ！`
+      );
+
+    } else {
+
+      player.hp =
+        Math.max(
+          0,
+          player.hp -
+          data.damage
+        );
+
+      logMessage(
+        `💥 ${data.attackerName}から${data.damage}ダメージ！`
+      );
+
+      updateStatus();
+    }
+
+    updatePvPDisplay();
+  }
+);
+
+
+/* =========================================================
+   PvPスキル結果
+========================================================= */
+
+socket.on(
+  "pvpSkillResult",
+  data => {
+
+    if (!data) {
+      return;
+    }
+
+    if (
+      pvpOpponent &&
+      data.targetId ===
+        pvpOpponent.id
+    ) {
+
+      pvpOpponent.hp =
+        data.targetHp;
+
+      pvpOpponent.maxHp =
+        data.targetMaxHp;
+    }
+
+    if (
+      data.attackerId ===
+      socket.id
+    ) {
+
+      logMessage(
+        `✨ ${data.skillName}！${data.damage}ダメージ！`
+      );
+
+    } else {
+
+      player.hp =
+        Math.max(
+          0,
+          player.hp -
+          data.damage
+        );
+
+      logMessage(
+        `💥 ${data.attackerName}の${data.skillName}！${data.damage}ダメージ！`
+      );
+
+      updateStatus();
+    }
+
+    updatePvPDisplay();
+  }
+);
+
+
+/* =========================================================
+   PvPターン
+========================================================= */
+
+socket.on(
+  "pvpTurn",
+  data => {
+
+    if (!data) {
+      return;
+    }
+
+    pvpMyTurn =
+      data.turnId ===
+      socket.id;
+
+    updatePvPDisplay();
+  }
+);
+
+
+/* =========================================================
+   PvP防御
+========================================================= */
+
+socket.on(
+  "pvpDefended",
+  () => {
+
+    logMessage(
+      "🛡️ 防御態勢！"
     );
   }
 );
 
 
 socket.on(
-  "pvpUpdate",
+  "pvpOpponentDefended",
   data => {
 
-    if (!pvpBattle) return;
+    logMessage(
+      `🛡️ ${data.playerName}が防御した！`
+    );
+  }
+);
 
-    pvpOpponent =
-      data.opponent;
 
-    player.hp =
-      data.myHp;
+/* =========================================================
+   PvPエラー
+========================================================= */
 
-    pvpMyTurn =
-      data.turn === socket.id;
+socket.on(
+  "pvpError",
+  message => {
 
-    updatePvPDisplay();
+    logMessage(
+      `❌ PvP：${message}`
+    );
 
-    updateStatus();
+    alert(
+      `❌ ${message}`
+    );
+  }
+);
+
+
+/* =========================================================
+   PvP拒否
+========================================================= */
+
+socket.on(
+  "pvpRejected",
+  data => {
+
+    logMessage(
+      `❌ ${data.targetName}とのPvP申請を拒否しました。`
+    );
   }
 );
 
 
 socket.on(
-  "pvpEnd",
+  "pvpRejectedByTarget",
+  data => {
+
+    logMessage(
+      `❌ ${data.targetName}にPvPを拒否されました。`
+    );
+  }
+);
+
+
+/* =========================================================
+   PvP終了
+========================================================= */
+
+socket.on(
+  "pvpFinished",
+  data => {
+
+    if (!data) {
+      endPvP();
+      return;
+    }
+
+    if (
+      data.winnerId ===
+      socket.id
+    ) {
+
+      logMessage(
+        `🏆 ${data.winnerName}がPvPに勝利！`
+      );
+
+    } else {
+
+      logMessage(
+        `💀 ${data.loserName}が敗北！`
+      );
+    }
+
+    if (
+      data.loserId ===
+      socket.id
+    ) {
+
+      player.hp = 0;
+
+      updateStatus();
+    }
+
+    endPvP();
+  }
+);
+
+
+/* =========================================================
+   PvP強制終了
+========================================================= */
+
+socket.on(
+  "pvpEnded",
   data => {
 
     if (
       data &&
-      data.message
+      data.reason
     ) {
 
       logMessage(
-        data.message
+        `⚠️ ${data.reason}`
       );
     }
 
@@ -2129,42 +2872,34 @@ function bindButtons() {
   }
 
 
-  /* =========================
-     管理者
-  ========================== */
+  /* 管理者 */
 
   if ($("adminBtn")) {
-
     $("adminBtn").onclick =
       openAdminPanel;
   }
 
   if ($("adminLoginBtn")) {
-
     $("adminLoginBtn").onclick =
       adminLogin;
   }
 
   if ($("adminMaxLevelBtn")) {
-
     $("adminMaxLevelBtn").onclick =
       adminMaxLevel;
   }
 
   if ($("adminMaxStatusBtn")) {
-
     $("adminMaxStatusBtn").onclick =
       adminMaxStatus;
   }
 
   if ($("adminMaxAllBtn")) {
-
     $("adminMaxAllBtn").onclick =
       adminMaxAll;
   }
 
   if ($("adminCloseBtn")) {
-
     $("adminCloseBtn").onclick =
       () => {
         hidePanel(
@@ -2174,9 +2909,7 @@ function bindButtons() {
   }
 
 
-  /* =========================
-     PvP
-  ========================== */
+  /* PvP */
 
   if ($("pvpAttackBtn")) {
     $("pvpAttackBtn").onclick =
@@ -2202,6 +2935,95 @@ function bindButtons() {
     $("pvpRunBtn").onclick =
       pvpRun;
   }
+
+
+  /* データ削除 */
+
+  if ($("deleteDataBtn")) {
+
+    $("deleteDataBtn").onclick =
+      deleteGameData;
+  }
+}
+
+
+/* =========================================================
+   データ完全削除
+========================================================= */
+
+function deleteGameData() {
+
+  const ok =
+    confirm(
+      "⚠️ 本当にゲームデータを全部削除しますか？\n\n" +
+      "レベル・HP・攻撃力・お金・懸賞金・装備・管理者状態など、\n" +
+      "保存されているゲームデータがすべて消えます。\n\n" +
+      "この操作は元に戻せません。"
+    );
+
+  if (!ok) {
+    return;
+  }
+
+
+  /* セーブデータ削除 */
+
+  localStorage.removeItem(
+    "yuusha_bounty_rpg"
+  );
+
+  /* 念のため関連キーも削除 */
+
+  localStorage.removeItem(
+    "yuusha_bounty_rpg_save"
+  );
+
+  localStorage.removeItem(
+    "yuusha_bounty_rpg_data"
+  );
+
+
+  /* PvP終了 */
+
+  pvpBattle = false;
+
+  pvpOpponent = null;
+
+  pvpMyTurn = false;
+
+
+  /* 通常戦闘終了 */
+
+  battleBusy = false;
+
+  enemy = null;
+
+  defending = false;
+
+
+  /* オンライン退出 */
+
+  if (
+    socket.connected &&
+    currentRoomId
+  ) {
+
+    socket.emit(
+      "leaveRoom"
+    );
+  }
+
+  currentRoomId =
+    null;
+
+
+  alert(
+    "🗑️ ゲームデータを削除しました！\n\n" +
+    "ゲームを初期状態に戻します。"
+  );
+
+
+  location.reload();
 }
 
 
@@ -2218,7 +3040,7 @@ function setupKeyboard() {
       if (
         event.key === "Enter" &&
         document.activeElement ===
-        $("roomCodeInput")
+          $("roomCodeInput")
       ) {
 
         joinRoom();
@@ -2227,7 +3049,7 @@ function setupKeyboard() {
       if (
         event.key === "Enter" &&
         document.activeElement ===
-        $("chatInput")
+          $("chatInput")
       ) {
 
         sendChat();
@@ -2236,7 +3058,7 @@ function setupKeyboard() {
       if (
         event.key === "Enter" &&
         document.activeElement ===
-        $("adminCodeInput")
+          $("adminCodeInput")
       ) {
 
         adminLogin();
@@ -2269,11 +3091,13 @@ function startGame() {
       : "勇者";
 
   if (!player.name) {
-    player.name = "勇者";
+    player.name =
+      "勇者";
   }
 
   player.hp =
     player.maxHp;
+
 
   if ($("startScreen")) {
 
@@ -2287,15 +3111,22 @@ function startGame() {
       .classList.remove("hidden");
   }
 
+
   updateStatus();
 
   saveGame();
 
-  sendPlayerUpdate();
-
   logMessage(
     `⚔️ ${player.name}の冒険が始まった！`
   );
+
+
+  /*
+    ルームに入っている場合だけ
+    サーバーへ送信
+  */
+
+  sendPlayerUpdate();
 }
 
 
@@ -2305,11 +3136,7 @@ function startGame() {
 
 function restartGame() {
 
-  localStorage.removeItem(
-    "yuusha_bounty_rpg"
-  );
-
-  location.reload();
+  deleteGameData();
 }
 
 
@@ -2327,17 +3154,20 @@ function init() {
 
   updateStatus();
 
+
   if ($("startBtn")) {
 
     $("startBtn").onclick =
       startGame;
   }
 
+
   if ($("restartBtn")) {
 
     $("restartBtn").onclick =
       restartGame;
   }
+
 
   hidePanel(
     "battleScreen"
@@ -2364,9 +3194,7 @@ function init() {
   );
 
 
-  /* =========================
-     保存済みゲーム
-  ========================== */
+  /* 保存データ復元 */
 
   if (player.name) {
 
@@ -2389,8 +3217,6 @@ function init() {
     );
 
 
-    /* 管理者データも復元 */
-
     if (player.admin) {
 
       logMessage(
@@ -2398,11 +3224,29 @@ function init() {
       );
     }
   }
+
+
+  /* 最初の接続状態 */
+
+  if (socket.connected) {
+
+    updateOnlineStatus(
+      "🟢 オンライン接続済み",
+      true
+    );
+
+  } else {
+
+    updateOnlineStatus(
+      "🔴 オンライン未接続",
+      false
+    );
+  }
 }
 
 
-/* =========================
+/* =========================================================
    起動
-========================= */
+========================================================= */
 
 init();
