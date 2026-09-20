@@ -15,17 +15,12 @@
 
 <body>
 
-  <!-- =====================================================
-       開始画面
-  ====================================================== -->
-
+  <!-- ================================
+       スタート画面
+  ================================= -->
   <section id="startScreen" class="screen">
-
     <h1>⚔️ 勇者の懸賞金RPG</h1>
-
-    <p>
-      オンライン対応・PvP対応RPG
-    </p>
+    <p>オンライン対応・PvP対応RPG</p>
 
     <div class="start-box">
 
@@ -52,35 +47,29 @@
       </button>
 
     </div>
-
   </section>
 
 
-  <!-- =====================================================
-       ゲーム画面
-  ====================================================== -->
-
+  <!-- ================================
+       メインゲーム画面
+  ================================= -->
   <section id="gameScreen" class="screen hidden">
 
     <header>
 
       <h1>⚔️ 勇者の懸賞金RPG</h1>
 
-      <div id="roomStatus">
-        オフライン
-      </div>
-
+      <!-- サーバー接続状態 -->
       <div id="connectionStatus">
-        サーバー確認中...
+        🔴 オフライン
       </div>
 
     </header>
 
 
-    <!-- ===================================================
-         ステータス
-    ==================================================== -->
-
+    <!-- ================================
+         プレイヤー情報
+    ================================= -->
     <section class="status-panel">
 
       <h2>📊 プレイヤー情報</h2>
@@ -108,7 +97,10 @@
       </div>
 
       <div class="bar">
-        <div id="hpBar" class="bar-inner"></div>
+        <div
+          id="hpBar"
+          class="bar-inner"
+        ></div>
       </div>
 
       <div>
@@ -149,10 +141,9 @@
     </section>
 
 
-    <!-- ===================================================
+    <!-- ================================
          メニュー
-    ==================================================== -->
-
+    ================================= -->
     <section class="menu-panel">
 
       <h2>🎮 メニュー</h2>
@@ -189,17 +180,19 @@
         🔑 管理者
       </button>
 
-      <button id="deleteDataBtn" class="danger">
+      <button
+        id="deleteDataBtn"
+        class="danger"
+      >
         🗑️ データ削除
       </button>
 
     </section>
 
 
-    <!-- ===================================================
+    <!-- ================================
          ログ
-    ==================================================== -->
-
+    ================================= -->
     <section class="log-panel">
 
       <h2>📜 ログ</h2>
@@ -211,11 +204,13 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        モンスター戦闘
-  ====================================================== -->
-
-  <section id="battleScreen" class="modal hidden">
+  ================================= -->
+  <section
+    id="battleScreen"
+    class="modal hidden"
+  >
 
     <div class="modal-box battle-box">
 
@@ -233,7 +228,12 @@
         </div>
 
         <div class="bar enemy-bar">
-          <div id="enemyHpBar" class="bar-inner"></div>
+
+          <div
+            id="enemyHpBar"
+            class="bar-inner"
+          ></div>
+
         </div>
 
       </div>
@@ -268,11 +268,13 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        レベルアップ
-  ====================================================== -->
-
-  <section id="levelChoices" class="modal hidden">
+  ================================= -->
+  <section
+    id="levelChoices"
+    class="modal hidden"
+  >
 
     <div class="modal-box">
 
@@ -299,23 +301,29 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        オンライン
-  ====================================================== -->
-
-  <section id="onlinePanel" class="modal hidden">
+  ================================= -->
+  <section
+    id="onlinePanel"
+    class="modal hidden"
+  >
 
     <div class="modal-box online-box">
 
       <h2>🌐 オンライン</h2>
 
-      <div id="roomStatus" class="room-status">
+
+      <!-- ルーム状態 -->
+      <div
+        id="roomStatus"
+        class="room-status"
+      >
         未接続
       </div>
 
 
       <!-- ルーム作成 -->
-
       <div>
 
         <button id="createRoomBtn">
@@ -326,7 +334,6 @@
 
 
       <!-- ルーム参加 -->
-
       <div class="join-row">
 
         <input
@@ -344,14 +351,15 @@
 
 
       <!-- ルーム情報 -->
-
       <div class="room-box">
 
         <div id="roomInfo">
           ルーム未参加
         </div>
 
-        <h3>👥 参加者</h3>
+        <h3>
+          👥 参加者
+        </h3>
 
         <div id="roomPlayers"></div>
 
@@ -362,13 +370,17 @@
       </div>
 
 
-      <!-- チャット -->
-
+      <!-- 公開チャット -->
       <div class="chat-box">
 
-        <h3>💬 公開チャット</h3>
+        <h3>
+          💬 公開チャット
+        </h3>
 
-        <div id="chatLog" class="chat-log"></div>
+        <div
+          id="chatLog"
+          class="chat-log"
+        ></div>
 
         <div class="chat-input">
 
@@ -397,11 +409,13 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        PvP
-  ====================================================== -->
-
-  <section id="pvpBattleScreen" class="modal hidden">
+  ================================= -->
+  <section
+    id="pvpBattleScreen"
+    class="modal hidden"
+  >
 
     <div class="modal-box">
 
@@ -412,14 +426,21 @@
       </div>
 
       <div>
+
         HP：
         <span id="pvpOpponentHp">0</span>
         /
         <span id="pvpOpponentMaxHp">0</span>
+
       </div>
 
       <div class="bar">
-        <div id="pvpOpponentHpBar" class="bar-inner"></div>
+
+        <div
+          id="pvpOpponentHpBar"
+          class="bar-inner"
+        ></div>
+
       </div>
 
       <div id="pvpTurnText">
@@ -456,16 +477,17 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        管理者
-  ====================================================== -->
-
-  <section id="adminPanel" class="modal hidden">
+  ================================= -->
+  <section
+    id="adminPanel"
+    class="modal hidden"
+  >
 
     <div class="modal-box">
 
       <h2>🔑 管理者メニュー</h2>
-
 
       <div id="adminLoginArea">
 
@@ -487,7 +509,10 @@
       </div>
 
 
-      <div id="adminControls" class="hidden">
+      <div
+        id="adminControls"
+        class="hidden"
+      >
 
         <button id="adminMaxLevelBtn">
           ⬆️ 最大レベル
@@ -513,11 +538,13 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        ゲームオーバー
-  ====================================================== -->
-
-  <section id="gameOverScreen" class="modal hidden">
+  ================================= -->
+  <section
+    id="gameOverScreen"
+    class="modal hidden"
+  >
 
     <div class="modal-box">
 
@@ -536,13 +563,14 @@
   </section>
 
 
-  <!-- =====================================================
+  <!-- ================================
        Socket.IO
-  ====================================================== -->
-
+  ================================= -->
   <script src="/socket.io/socket.io.js"></script>
 
-  <!-- ゲーム本体 -->
+  <!-- ================================
+       ゲーム本体
+  ================================= -->
   <script src="game.js"></script>
 
 </body>
