@@ -1,4 +1,10 @@
-const socket = io("https://newrpg-ekcw.onrender.com");
+const socket = io("https://newrpg-ekcw.onrender.com", {
+  transports: ["websocket", "polling"],
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000
+});
+
 
 /* =========================================================
    プレイヤー
@@ -170,6 +176,22 @@ function logMessage(message) {
 
 
 /* =========================================================
+   接続状態表示
+========================================================= */
+
+function updateConnectionStatus(text) {
+
+  const status =
+    $("connectionStatus");
+
+  if (status) {
+    status.textContent =
+      text;
+  }
+}
+
+
+/* =========================================================
    セーブ
 ========================================================= */
 
@@ -326,13 +348,13 @@ function updateStatus() {
 
 
 /* =========================================================
-   オンライン接続状態表示
+   オンライン状態表示
 ========================================================= */
 
 function updateOnlineStatus(text, connected) {
 
   onlineConnected =
-    connected;
+    !!connected;
 
   const status =
     $("roomStatus");
@@ -351,7 +373,6 @@ function updateOnlineStatus(text, connected) {
 function sendPlayerUpdate() {
 
   if (
-    !socket ||
     !socket.connected ||
     !currentRoomId
   ) {
@@ -433,6 +454,8 @@ function hidePanel(id) {
   panel.classList.add(
     "hidden"
   );
+
+  panel.style.display = "";
 }
 
 
@@ -686,6 +709,8 @@ function enemyAttack() {
 
     saveGame();
 
+    sendPlayerUpdate();
+
     if (player.hp <= 0) {
 
       player.hp = 0;
@@ -844,6 +869,12 @@ function winBattle() {
       defeatedEnemy.money / 2
     );
 
+  if (defeatedEnemy.bounty) {
+
+    player.bounty +=
+      defeatedEnemy.bounty;
+  }
+
   logMessage(
     `🏆 ${defeatedEnemy.name}を倒した！`
   );
@@ -872,11 +903,16 @@ function winBattle() {
 
 function checkLevelUp() {
 
-  while (
-    player.level <
-      player.maxLevel &&
+  if (
+    player.level >=
+    player.maxLevel
+  ) {
+    return;
+  }
+
+  if (
     player.xp >=
-      player.level * 100
+    player.level * 100
   ) {
 
     player.xp -=
@@ -1386,7 +1422,7 @@ function activateAdmin() {
   );
 
   logMessage(
-    "💰 懸賞金MAX！"
+    "🎯 懸賞金MAX！"
   );
 
   logMessage(
@@ -1488,41 +1524,25 @@ function adminLogin() {
 
 function openAdminPanel() {
 
+  showPanel(
+    "adminPanel"
+  );
+
   if (player.admin) {
 
-    if ($("adminPanel")) {
+    if ($("adminLoginArea")) {
 
-      showPanel(
-        "adminPanel"
-      );
-
-      if ($("adminLoginArea")) {
-
-        $("adminLoginArea")
-          .classList.add("hidden");
-      }
-
-      if ($("adminControls")) {
-
-        $("adminControls")
-          .classList.remove("hidden");
-      }
-
-    } else {
-
-      alert(
-        "👑 管理者モードはONです！"
-      );
+      $("adminLoginArea")
+        .classList.add("hidden");
     }
 
-    return;
-  }
+    if ($("adminControls")) {
 
-  if ($("adminPanel")) {
+      $("adminControls")
+        .classList.remove("hidden");
+    }
 
-    showPanel(
-      "adminPanel"
-    );
+  } else {
 
     if ($("adminLoginArea")) {
 
@@ -1535,11 +1555,7 @@ function openAdminPanel() {
       $("adminControls")
         .classList.add("hidden");
     }
-
-    return;
   }
-
-  adminLogin();
 }
 
 
@@ -1731,7 +1747,8 @@ function pvpAttack() {
 
   if (
     !pvpBattle ||
-    !pvpMyTurn
+    !pvpMyTurn ||
+    !socket.connected
   ) {
     return;
   }
@@ -1754,7 +1771,8 @@ function pvpDefend() {
 
   if (
     !pvpBattle ||
-    !pvpMyTurn
+    !pvpMyTurn ||
+    !socket.connected
   ) {
     return;
   }
@@ -1777,7 +1795,8 @@ function pvpSkill() {
 
   if (
     !pvpBattle ||
-    !pvpMyTurn
+    !pvpMyTurn ||
+    !socket.connected
   ) {
     return;
   }
@@ -1832,7 +1851,10 @@ function pvpInspect() {
 
 function pvpRun() {
 
-  if (!pvpBattle) {
+  if (
+    !pvpBattle ||
+    !socket.connected
+  ) {
     return;
   }
 
@@ -1872,6 +1894,10 @@ function createRoom() {
 
     logMessage(
       "🔴 オンライン未接続です。"
+    );
+
+    updateConnectionStatus(
+      "🔴 サーバー未接続"
     );
 
     return;
@@ -1917,6 +1943,10 @@ function joinRoom() {
       "🔴 オンライン未接続です。"
     );
 
+    updateConnectionStatus(
+      "🔴 サーバー未接続"
+    );
+
     return;
   }
 
@@ -1944,28 +1974,18 @@ function leaveRoom() {
     socket.emit(
       "leaveRoom"
     );
-  }
 
-  currentRoomId =
-    null;
+  } else {
 
-  updateOnlineStatus(
-    "未接続",
-    onlineConnected
-  );
+    currentRoomId =
+      null;
 
-  if ($("roomInfo")) {
-
-    $("roomInfo")
-      .textContent =
-      "";
-  }
-
-  if ($("roomPlayers")) {
-
-    $("roomPlayers")
-      .innerHTML =
-      "";
+    updateOnlineStatus(
+      socket.connected
+        ? "🟢 オンライン接続済み"
+        : "🔴 オンライン未接続",
+      socket.connected
+    );
   }
 }
 
@@ -1978,6 +1998,10 @@ function openOnline() {
 
   if (socket.connected) {
 
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
+
     updateOnlineStatus(
       currentRoomId
         ? "🟢 ルーム参加中"
@@ -1987,9 +2011,17 @@ function openOnline() {
 
   } else {
 
+    updateConnectionStatus(
+      "🔴 サーバー未接続"
+    );
+
     updateOnlineStatus(
       "🔴 オンライン未接続",
       false
+    );
+
+    logMessage(
+      "🔄 サーバーへ再接続を試みています..."
     );
   }
 }
@@ -2032,6 +2064,15 @@ function sendChat() {
     return;
   }
 
+  if (!socket.connected) {
+
+    logMessage(
+      "🔴 サーバーに接続されていません。"
+    );
+
+    return;
+  }
+
   socket.emit(
     "chat",
     message
@@ -2063,13 +2104,19 @@ function addChatMessage(
 
   chat.appendChild(line);
 
+  while (chat.children.length > 100) {
+    chat.removeChild(
+      chat.firstChild
+    );
+  }
+
   chat.scrollTop =
     chat.scrollHeight;
 }
 
 
 /* =========================================================
-   Socket.IO 接続
+   Socket.IO 接続成功
 ========================================================= */
 
 socket.on(
@@ -2079,8 +2126,14 @@ socket.on(
     onlineConnected =
       true;
 
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
+
     updateOnlineStatus(
-      "🟢 オンライン接続済み",
+      currentRoomId
+        ? "🟢 ルーム参加中"
+        : "🟢 オンライン接続済み",
       true
     );
 
@@ -2096,12 +2149,20 @@ socket.on(
 );
 
 
+/* =========================================================
+   オンライン準備完了
+========================================================= */
+
 socket.on(
   "onlineReady",
   () => {
 
     onlineConnected =
       true;
+
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
 
     updateOnlineStatus(
       currentRoomId
@@ -2117,6 +2178,10 @@ socket.on(
 );
 
 
+/* =========================================================
+   Socket.IO 切断
+========================================================= */
+
 socket.on(
   "disconnect",
   reason => {
@@ -2126,6 +2191,10 @@ socket.on(
 
     currentRoomId =
       null;
+
+    updateConnectionStatus(
+      "🔴 サーバー未接続"
+    );
 
     updateOnlineStatus(
       "🔴 オンライン未接続",
@@ -2144,12 +2213,20 @@ socket.on(
 );
 
 
+/* =========================================================
+   Socket.IO 接続エラー
+========================================================= */
+
 socket.on(
   "connect_error",
   error => {
 
     onlineConnected =
       false;
+
+    updateConnectionStatus(
+      "🔴 サーバー接続失敗"
+    );
 
     updateOnlineStatus(
       "🔴 オンライン未接続",
@@ -2169,6 +2246,58 @@ socket.on(
 
 
 /* =========================================================
+   再接続開始
+========================================================= */
+
+socket.io.on(
+  "reconnect_attempt",
+  attempt => {
+
+    updateConnectionStatus(
+      "🟡 サーバーへ再接続中..."
+    );
+
+    console.log(
+      "再接続試行:",
+      attempt
+    );
+  }
+);
+
+
+/* =========================================================
+   再接続成功
+========================================================= */
+
+socket.io.on(
+  "reconnect",
+  attempt => {
+
+    onlineConnected =
+      true;
+
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
+
+    updateOnlineStatus(
+      "🟢 オンライン接続済み",
+      true
+    );
+
+    logMessage(
+      "🟢 サーバーへ再接続しました！"
+    );
+
+    console.log(
+      "Socket.IO再接続成功:",
+      attempt
+    );
+  }
+);
+
+
+/* =========================================================
    ルーム作成成功
 ========================================================= */
 
@@ -2176,8 +2305,16 @@ socket.on(
   "roomCreated",
   data => {
 
+    if (!data) {
+      return;
+    }
+
     currentRoomId =
       data.roomId;
+
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
 
     updateOnlineStatus(
       "🟢 ルーム参加中",
@@ -2203,6 +2340,8 @@ socket.on(
       };
 
       updateStatus();
+
+      saveGame();
     }
 
     renderRoomPlayers(
@@ -2220,8 +2359,16 @@ socket.on(
   "roomJoined",
   data => {
 
+    if (!data) {
+      return;
+    }
+
     currentRoomId =
       data.roomId;
+
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
 
     updateOnlineStatus(
       "🟢 ルーム参加中",
@@ -2247,11 +2394,20 @@ socket.on(
       };
 
       updateStatus();
+
+      saveGame();
     }
 
     renderRoomPlayers(
       data.players || []
     );
+
+    const input =
+      $("roomCodeInput");
+
+    if (input) {
+      input.value = "";
+    }
   }
 );
 
@@ -2271,8 +2427,16 @@ function renderRoomPlayers(players) {
 
   container.innerHTML = "";
 
+  if (!Array.isArray(players)) {
+    return;
+  }
+
   players.forEach(
     p => {
+
+      if (!p) {
+        return;
+      }
 
       const div =
         document.createElement(
@@ -2282,8 +2446,66 @@ function renderRoomPlayers(players) {
       div.className =
         "room-player";
 
+      const isMe =
+        p.id === socket.id;
+
       div.textContent =
-        `${p.name}　Lv.${p.level}　HP:${p.hp}/${p.maxHp}`;
+        `${isMe ? "👤 " : ""}${p.name || "勇者"}　Lv.${p.level || 1}　HP:${Math.max(0, p.hp || 0)}/${p.maxHp || 100}`;
+
+      /*
+        自分以外のプレイヤーを
+        PvP対象としてクリックできるようにする
+      */
+
+      if (
+        !isMe &&
+        p.id
+      ) {
+
+        div.style.cursor =
+          "pointer";
+
+        div.title =
+          "タップしてPvP対戦を申し込む";
+
+        div.onclick =
+          () => {
+
+            if (
+              !currentRoomId ||
+              !socket.connected
+            ) {
+              return;
+            }
+
+            if (pvpBattle) {
+
+              logMessage(
+                "⚠️ すでにPvP中です。"
+              );
+
+              return;
+            }
+
+            const ok =
+              confirm(
+                `${p.name}にPvP対戦を申し込みますか？`
+              );
+
+            if (!ok) {
+              return;
+            }
+
+            socket.emit(
+              "pvpChallenge",
+              p.id
+            );
+
+            logMessage(
+              `⚔️ ${p.name}へPvP対戦を申し込みました。`
+            );
+          };
+      }
 
       container.appendChild(
         div
@@ -2292,6 +2514,10 @@ function renderRoomPlayers(players) {
   );
 }
 
+
+/* =========================================================
+   ルームプレイヤー更新
+========================================================= */
 
 socket.on(
   "roomPlayersUpdate",
@@ -2335,7 +2561,9 @@ socket.on(
       null;
 
     updateOnlineStatus(
-      "🟢 オンライン接続済み",
+      socket.connected
+        ? "🟢 オンライン接続済み"
+        : "🔴 オンライン未接続",
       socket.connected
     );
 
@@ -2343,7 +2571,7 @@ socket.on(
 
       $("roomInfo")
         .textContent =
-        "";
+        "ルーム未参加";
     }
 
     if ($("roomPlayers")) {
@@ -2445,6 +2673,10 @@ socket.on(
   "pvpChallengeSent",
   data => {
 
+    if (!data) {
+      return;
+    }
+
     logMessage(
       `⚔️ ${data.targetName}へPvP対戦を申し込みました。`
     );
@@ -2544,6 +2776,8 @@ socket.on(
       );
 
       updateStatus();
+
+      saveGame();
     }
 
     updatePvPDisplay();
@@ -2599,6 +2833,8 @@ socket.on(
       );
 
       updateStatus();
+
+      saveGame();
     }
 
     updatePvPDisplay();
@@ -2646,6 +2882,10 @@ socket.on(
   "pvpOpponentDefended",
   data => {
 
+    if (!data) {
+      return;
+    }
+
     logMessage(
       `🛡️ ${data.playerName}が防御した！`
     );
@@ -2680,8 +2920,12 @@ socket.on(
   "pvpRejected",
   data => {
 
+    if (!data) {
+      return;
+    }
+
     logMessage(
-      `❌ ${data.targetName}とのPvP申請を拒否しました。`
+      `❌ ${data.targetName || "相手"}とのPvP申請を拒否しました。`
     );
   }
 );
@@ -2691,8 +2935,12 @@ socket.on(
   "pvpRejectedByTarget",
   data => {
 
+    if (!data) {
+      return;
+    }
+
     logMessage(
-      `❌ ${data.targetName}にPvPを拒否されました。`
+      `❌ ${data.targetName || "相手"}にPvPを拒否されました。`
     );
   }
 );
@@ -2707,7 +2955,9 @@ socket.on(
   data => {
 
     if (!data) {
+
       endPvP();
+
       return;
     }
 
@@ -2735,6 +2985,8 @@ socket.on(
       player.hp = 0;
 
       updateStatus();
+
+      saveGame();
     }
 
     endPvP();
@@ -2763,6 +3015,36 @@ socket.on(
     endPvP();
   }
 );
+
+
+/* =========================================================
+   ゲームオーバー
+========================================================= */
+
+function gameOver() {
+
+  battleBusy = false;
+
+  enemy = null;
+
+  defending = false;
+
+  hidePanel(
+    "battleScreen"
+  );
+
+  showPanel(
+    "gameOverScreen"
+  );
+
+  saveGame();
+
+  sendPlayerUpdate();
+
+  logMessage(
+    "💀 勇者は力尽きた……"
+  );
+}
 
 
 /* =========================================================
@@ -2900,8 +3182,10 @@ function bindButtons() {
   }
 
   if ($("adminCloseBtn")) {
+
     $("adminCloseBtn").onclick =
       () => {
+
         hidePanel(
           "adminPanel"
         );
@@ -2965,14 +3249,9 @@ function deleteGameData() {
     return;
   }
 
-
-  /* セーブデータ削除 */
-
   localStorage.removeItem(
     "yuusha_bounty_rpg"
   );
-
-  /* 念のため関連キーも削除 */
 
   localStorage.removeItem(
     "yuusha_bounty_rpg_save"
@@ -2982,26 +3261,17 @@ function deleteGameData() {
     "yuusha_bounty_rpg_data"
   );
 
-
-  /* PvP終了 */
-
   pvpBattle = false;
 
   pvpOpponent = null;
 
   pvpMyTurn = false;
 
-
-  /* 通常戦闘終了 */
-
   battleBusy = false;
 
   enemy = null;
 
   defending = false;
-
-
-  /* オンライン退出 */
 
   if (
     socket.connected &&
@@ -3016,12 +3286,10 @@ function deleteGameData() {
   currentRoomId =
     null;
 
-
   alert(
     "🗑️ ゲームデータを削除しました！\n\n" +
     "ゲームを初期状態に戻します。"
   );
-
 
   location.reload();
 }
@@ -3096,7 +3364,17 @@ function startGame() {
   }
 
   player.hp =
-    player.maxHp;
+    Math.min(
+      player.hp,
+      player.maxHp
+    );
+
+  if (
+    player.hp <= 0
+  ) {
+    player.hp =
+      player.maxHp;
+  }
 
 
   if ($("startScreen")) {
@@ -3119,12 +3397,6 @@ function startGame() {
   logMessage(
     `⚔️ ${player.name}の冒険が始まった！`
   );
-
-
-  /*
-    ルームに入っている場合だけ
-    サーバーへ送信
-  */
 
   sendPlayerUpdate();
 }
@@ -3190,7 +3462,7 @@ function init() {
   );
 
   hidePanel(
-    "gameOverPanel"
+    "gameOverScreen"
   );
 
 
@@ -3216,7 +3488,6 @@ function init() {
       `👋 ${player.name}のデータを読み込みました！`
     );
 
-
     if (player.admin) {
 
       logMessage(
@@ -3230,6 +3501,10 @@ function init() {
 
   if (socket.connected) {
 
+    updateConnectionStatus(
+      "🟢 サーバー接続済み"
+    );
+
     updateOnlineStatus(
       "🟢 オンライン接続済み",
       true
@@ -3237,8 +3512,12 @@ function init() {
 
   } else {
 
+    updateConnectionStatus(
+      "🟡 サーバーへ接続中..."
+    );
+
     updateOnlineStatus(
-      "🔴 オンライン未接続",
+      "🟡 接続中...",
       false
     );
   }
