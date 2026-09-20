@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("https://newrpg-ekcw.onrender.com");
 
 /* =========================================================
    プレイヤー
