@@ -1,623 +1,621 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
-
-  <title>勇者の懸賞金RPG</title>
-
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Socket.IO -->
-  <script src="/socket.io/socket.io.js"></script>
-</head>
-
-<body>
-
-  <!-- =====================================================
-       開始画面
-  ====================================================== -->
-
-  <section id="startScreen" class="screen">
-
-    <h1>⚔️ 勇者の懸賞金RPG</h1>
-
-    <p>
-      オンライン対応RPG
-    </p>
-
-    <div class="start-box">
-
-      <label>
-        名前
-      </label>
-
-      <input
-        id="nameInput"
-        type="text"
-        maxlength="20"
-        placeholder="勇者の名前"
-      >
-
-
-      <label>
-        職業
-      </label>
-
-      <select id="jobInput">
-
-        <option value="勇者">
-          ⚔️ 勇者
-        </option>
-
-        <option value="戦士">
-          🛡️ 戦士
-        </option>
-
-        <option value="魔法使い">
-          🔮 魔法使い
-        </option>
-
-        <option value="盗賊">
-          🗡️ 盗賊
-        </option>
-
-      </select>
-
-
-      <button id="startBtn">
-        ▶️ 冒険を始める
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =====================================================
-       ゲーム画面
-  ====================================================== -->
-
-  <section id="gameScreen" class="screen hidden">
-
-    <header>
-
-      <h1>
-        ⚔️ 勇者の懸賞金RPG
-      </h1>
-
-      <div id="roomStatus">
-        🔴 オンライン未接続
-      </div>
-
-    </header>
-
-
-    <!-- ===================================================
-         プレイヤーステータス
-    ==================================================== -->
-
-    <div class="status-panel">
-
-      <h2>👤 プレイヤー</h2>
-
-      <div>
-        名前：
-        <span id="playerName">---</span>
-      </div>
-
-      <div>
-        職業：
-        <span id="job">---</span>
-      </div>
-
-      <div>
-        レベル：
-        <span id="level">1</span>
-      </div>
-
-      <div>
-        HP：
-        <span id="hp">100</span>
-        /
-        <span id="maxHp">100</span>
-      </div>
-
-      <div class="bar">
-        <div
-          id="hpBar"
-          class="bar-inner"
-        ></div>
-      </div>
-
-      <div>
-        攻撃力：
-        <span id="attack">10</span>
-      </div>
-
-      <div>
-        経験値：
-        <span id="xp">0</span>
-      </div>
-
-      <div>
-        お金：
-        <span id="money">100</span>
-      </div>
-
-      <div>
-        懸賞金：
-        <span id="bounty">0</span>
-      </div>
-
-      <div>
-        武器：
-        <span id="weapon">木の剣</span>
-      </div>
-
-      <div>
-        場所：
-        <span id="area">村</span>
-      </div>
-
-      <div>
-        撃破数：
-        <span id="defeats">0</span>
-      </div>
-
-    </div>
-
-
-    <!-- ===================================================
-         メインメニュー
-    ==================================================== -->
-
-    <div class="menu-panel">
-
-      <h2>📜 メニュー</h2>
-
-      <button id="battleStartBtn">
-        ⚔️ モンスターと戦う
-      </button>
-
-      <button id="townBtn">
-        🏘️ 町へ行く
-      </button>
-
-      <button id="cityBtn">
-        🏙️ 都市へ行く
-      </button>
-
-      <button id="healBtn">
-        ❤️ 回復する
-      </button>
-
-      <button id="bossBtn">
-        👑 ボス戦
-      </button>
-
-      <button id="gachaBtn">
-        🎰 ガチャ
-      </button>
-
-      <button id="onlineBtn">
-        🌐 オンライン
-      </button>
-
-      <button id="adminBtn">
-        🔐 管理者
-      </button>
-
-      <button id="deleteDataBtn" class="danger">
-        🗑️ データ削除
-      </button>
-
-    </div>
-
-
-    <!-- ===================================================
-         ゲームログ
-    ==================================================== -->
-
-    <div class="log-panel">
-
-      <h2>📜 ログ</h2>
-
-      <div id="log"></div>
-
-    </div>
-
-
-    <!-- ===================================================
-         レベルアップ
-    ==================================================== -->
-
-    <div
-      id="levelChoices"
-      class="modal hidden"
-    >
-
-      <div class="modal-box">
-
-        <h2>🆙 レベルアップ！</h2>
-
-        <p>
-          強化する能力を選択してください。
-        </p>
-
-        <button id="hpLevelBtn">
-          ❤️ 最大HP +20
-        </button>
-
-        <button id="attackLevelBtn">
-          ⚔️ 攻撃力 +5
-        </button>
-
-        <button id="skillLevelBtn">
-          ✨ スキル強化
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- ===================================================
-         通常戦闘
-    ==================================================== -->
-
-    <div
-      id="battleScreen"
-      class="modal hidden"
-    >
-
-      <div class="modal-box battle-box">
-
-        <h2>
-          ⚔️ 戦闘
-        </h2>
-
-
-        <div class="enemy">
-
-          <h3 id="enemyName">
-            ---
-          </h3>
-
-          <p>
-            HP：
-            <span id="enemyHp">
-              0
-            </span>
-            /
-            <span id="enemyMaxHp">
-              0
-            </span>
-          </p>
-
-          <div class="bar">
-
-            <div
-              id="enemyHpBar"
-              class="bar-inner"
-            ></div>
-
-          </div>
-
-        </div>
-
-
-        <div class="battle-buttons">
-
-          <button id="attackBtn">
-            ⚔️ 攻撃
-          </button>
-
-          <button id="defendBtn">
-            🛡️ 防御
-          </button>
-
-          <button id="skillBtn">
-            ✨ スキル
-          </button>
-
-          <button id="inspectBtn">
-            👁️ 調べる
-          </button>
-
-          <button id="runBtn">
-            🏃 逃げる
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- ===================================================
-         オンライン
-    ==================================================== -->
-
-    <div
-      id="onlinePanel"
-      class="modal hidden"
-    >
-
-      <div class="modal-box online-box">
-
-        <h2>
-          🌐 オンライン
-        </h2>
-
-
-        <div id="roomInfo">
-        </div>
-
-
-        <h3>
-          🏠 ルーム作成
-        </h3>
-
-        <button id="createRoomBtn">
-          🏠 ルームを作成
-        </button>
-
-
-        <h3>
-          🚪 ルーム参加
-        </h3>
-
-        <input
-          id="roomCodeInput"
-          type="text"
-          maxlength="5"
-          placeholder="5文字のコード"
-        >
-
-        <button id="joinRoomBtn">
-          🚪 ルームに参加
-        </button>
-
-
-        <button
-          id="leaveRoomBtn"
-          class="danger"
-        >
-          🚪 ルームから退出
-        </button>
-
-
-        <h3>
-          👥 参加プレイヤー
-        </h3>
-
-        <div id="roomPlayers">
-        </div>
-
-
-        <h3>
-          💬 公開チャット
-        </h3>
-
-        <div
-          id="chatLog"
-          class="chat-log"
-        ></div>
-
-
-        <div class="chat-input">
-
-          <input
-            id="chatInput"
-            type="text"
-            maxlength="300"
-            placeholder="メッセージ"
-          >
-
-          <button id="chatSendBtn">
-            送信
-          </button>
-
-        </div>
-
-
-        <button id="closeOnlineBtn">
-          ✖️ 閉じる
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- ===================================================
-         PvP
-    ==================================================== -->
-
-    <div
-      id="pvpBattleScreen"
-      class="modal hidden"
-    >
-
-      <div class="modal-box">
-
-        <h2>
-          ⚔️ プレイヤー対戦
-        </h2>
-
-
-        <h3 id="pvpOpponentName">
-          相手
-        </h3>
-
-
-        <p>
-          HP：
-          <span id="pvpOpponentHp">
-            100
-          </span>
-          /
-          <span id="pvpOpponentMaxHp">
-            100
-          </span>
-        </p>
-
-
-        <div class="bar">
-
-          <div
-            id="pvpOpponentHpBar"
-            class="bar-inner"
-          ></div>
-
-        </div>
-
-
-        <h3 id="pvpTurnText">
-          ---
-        </h3>
-
-
-        <div class="battle-buttons">
-
-          <button id="pvpAttackBtn">
-            ⚔️ 攻撃
-          </button>
-
-          <button id="pvpDefendBtn">
-            🛡️ 防御
-          </button>
-
-          <button id="pvpSkillBtn">
-            ✨ スキル
-          </button>
-
-          <button id="pvpInspectBtn">
-            👁️ 調べる
-          </button>
-
-          <button id="pvpRunBtn">
-            🏃 逃げる
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- ===================================================
-         管理者
-    ==================================================== -->
-
-    <div
-      id="adminPanel"
-      class="modal hidden"
-    >
-
-      <div class="modal-box">
-
-        <h2>
-          👑 管理者
-        </h2>
-
-
-        <div id="adminLoginArea">
-
-          <p>
-            管理者コードを入力してください。
-          </p>
-
-          <input
-            id="adminCodeInput"
-            type="password"
-            inputmode="numeric"
-            maxlength="20"
-            placeholder="管理者コード"
-          >
-
-          <button id="adminLoginBtn">
-            🔓 認証
-          </button>
-
-        </div>
-
-
-        <div
-          id="adminControls"
-          class="hidden"
-        >
-
-          <p>
-            👑 管理者モード有効
-          </p>
-
-          <button id="adminMaxLevelBtn">
-            🆙 レベルMAX
-          </button>
-
-          <button id="adminMaxStatusBtn">
-            📊 ステータスMAX
-          </button>
-
-          <button id="adminMaxAllBtn">
-            👑 全部MAX
-          </button>
-
-        </div>
-
-
-        <button id="adminCloseBtn">
-          ✖️ 閉じる
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- ===================================================
-         ゲームオーバー
-    ==================================================== -->
-
-    <div
-      id="gameOverPanel"
-      class="modal hidden"
-    >
-
-      <div class="modal-box">
-
-        <h2>
-          💀 ゲームオーバー
-        </h2>
-
-        <p>
-          勇者は力尽きた……
-        </p>
-
-        <button id="restartBtn">
-          🔄 最初からやり直す
-        </button>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- =====================================================
-       JavaScript
-  ====================================================== -->
-
-  <script src="game.js"></script>
-
-</body>
-</html>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family:
+    Arial,
+    "Noto Sans JP",
+    sans-serif;
+  background: #111;
+  color: #fff;
+}
+
+body {
+  overflow-x: hidden;
+  touch-action: manipulation;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 5px;
+  background: #292929;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+button:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 13px;
+  margin: 6px 0 12px;
+  border: 2px solid #444;
+  border-radius: 10px;
+  background: #181818;
+  color: #fff;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: #777;
+}
+
+/* =====================================================
+   共通
+===================================================== */
+
+.hidden {
+  display: none !important;
+}
+
+.screen {
+  width: 100%;
+  min-height: 100vh;
+  padding: 15px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+/* =====================================================
+   開始画面
+===================================================== */
+
+#startScreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  background:
+    radial-gradient(circle at center, #292929 0%, #111 65%);
+}
+
+#startScreen h1 {
+  font-size: clamp(30px, 7vw, 58px);
+  margin-bottom: 10px;
+}
+
+#startScreen p {
+  color: #bbb;
+}
+
+.start-box {
+  width: min(420px, 95vw);
+  padding: 22px;
+  margin-top: 20px;
+  border-radius: 18px;
+  background: #1d1d1d;
+  box-shadow: 0 10px 35px #000;
+  text-align: left;
+}
+
+.start-box label {
+  display: block;
+  margin-top: 8px;
+  margin-bottom: 3px;
+  font-weight: bold;
+}
+
+#startBtn {
+  width: 100%;
+  margin: 15px 0 0;
+  padding: 16px;
+  background: #315d31;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* =====================================================
+   ゲーム画面
+===================================================== */
+
+#gameScreen {
+  max-width: 1200px;
+  margin: auto;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: #191919;
+  box-shadow: 0 5px 20px #0008;
+}
+
+header h1 {
+  margin: 0 0 5px;
+  font-size: clamp(22px, 5vw, 36px);
+}
+
+#roomStatus {
+  font-size: 14px;
+  color: #bbb;
+}
+
+/* =====================================================
+   ステータス
+===================================================== */
+
+.status-panel,
+.menu-panel,
+.log-panel {
+  background: #1b1b1b;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 5px 18px #0008;
+}
+
+.status-panel h2,
+.menu-panel h2,
+.log-panel h2 {
+  margin-bottom: 12px;
+}
+
+.status-panel > div {
+  margin: 6px 0;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #242424;
+}
+
+.status-panel span {
+  font-weight: bold;
+}
+
+/* =====================================================
+   HPバー
+===================================================== */
+
+.bar {
+  width: 100%;
+  height: 18px;
+  margin: 8px 0 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #080808;
+  border: 1px solid #444;
+}
+
+.bar-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: #45c45b;
+  transition: width 0.2s ease;
+}
+
+/* =====================================================
+   メニュー
+===================================================== */
+
+.menu-panel {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.menu-panel h2 {
+  grid-column: 1 / -1;
+}
+
+.menu-panel button {
+  min-height: 52px;
+  background: #292929;
+}
+
+#battleStartBtn {
+  background: #653333;
+}
+
+#onlineBtn {
+  background: #31506b;
+}
+
+#adminBtn {
+  background: #5d4a24;
+}
+
+.danger {
+  background: #6b2929 !important;
+}
+
+/* =====================================================
+   ログ
+===================================================== */
+
+#log {
+  min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0d0d0d;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+/* =====================================================
+   モーダル
+===================================================== */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  background: #000b;
+  overflow-y: auto;
+}
+
+.modal-box {
+  width: min(600px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 18px;
+  background: #1b1b1b;
+  border: 1px solid #444;
+  box-shadow: 0 15px 50px #000;
+}
+
+.modal-box h2 {
+  font-size: 25px;
+  margin-bottom: 15px;
+}
+
+.modal-box button {
+  min-height: 46px;
+}
+
+/* =====================================================
+   戦闘
+===================================================== */
+
+.battle-box {
+  text-align: center;
+}
+
+.enemy {
+  margin: 15px 0;
+  padding: 15px;
+  border-radius: 15px;
+  background: #252525;
+}
+
+.enemy h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.battle-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.battle-buttons button {
+  min-height: 55px;
+}
+
+/* =====================================================
+   レベルアップ
+===================================================== */
+
+#levelChoices .modal-box {
+  text-align: center;
+}
+
+#levelChoices button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 15px;
+}
+
+/* =====================================================
+   オンライン
+===================================================== */
+
+.online-box {
+  width: min(700px, 96vw);
+}
+
+#roomInfo {
+  min-height: 35px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #111;
+  word-break: break-word;
+}
+
+#roomPlayers {
+  min-height: 50px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: #111;
+}
+
+#roomPlayers > div {
+  padding: 8px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  background: #242424;
+}
+
+.chat-log {
+  height: 220px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0c0c0c;
+  border: 1px solid #333;
+}
+
+.chat-log > div {
+  padding: 7px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #292929;
+  word-break: break-word;
+}
+
+.chat-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.chat-input input {
+  margin: 0;
+}
+
+.chat-input button {
+  margin: 0;
+}
+
+/* =====================================================
+   管理者
+===================================================== */
+
+#adminPanel .modal-box {
+  text-align: center;
+}
+
+#adminControls button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 15px;
+  background: #4d3d1d;
+}
+
+/* =====================================================
+   PvP
+===================================================== */
+
+#pvpBattleScreen .modal-box {
+  text-align: center;
+}
+
+#pvpOpponentName {
+  font-size: 25px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #292929;
+}
+
+#pvpTurnText {
+  min-height: 40px;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 10px;
+  background: #111;
+}
+
+/* =====================================================
+   スクロールバー
+===================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 10px;
+}
+
+/* =====================================================
+   タブレット
+===================================================== */
+
+@media (min-width: 600px) {
+
+  .screen {
+    padding: 25px;
+  }
+
+  .status-panel {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .status-panel h2 {
+    grid-column: 1 / -1;
+  }
+
+  .status-panel .bar {
+    grid-column: 1 / -1;
+  }
+
+  .menu-panel {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .menu-panel h2 {
+    grid-column: 1 / -1;
+  }
+
+}
+
+/* =====================================================
+   PC
+===================================================== */
+
+@media (min-width: 900px) {
+
+  .screen {
+    padding: 30px;
+  }
+
+  #gameScreen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    align-items: start;
+  }
+
+  header {
+    grid-column: 1 / -1;
+  }
+
+  .status-panel,
+  .menu-panel,
+  .log-panel {
+    margin: 0;
+  }
+
+  .log-panel {
+    grid-column: 1 / -1;
+  }
+
+}
+
+/* =====================================================
+   小さいスマホ
+===================================================== */
+
+@media (max-width: 420px) {
+
+  .screen {
+    padding: 9px;
+  }
+
+  .status-panel,
+  .menu-panel,
+  .log-panel {
+    padding: 11px;
+    border-radius: 12px;
+  }
+
+  .menu-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-panel h2 {
+    grid-column: auto;
+  }
+
+  .battle-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-input {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-input button {
+    width: 100%;
+  }
+
+  .modal {
+    padding: 8px;
+  }
+
+  .modal-box {
+    padding: 14px;
+  }
+
+}
+
+/* =====================================================
+   タッチ操作
+===================================================== */
+
+@media (pointer: coarse) {
+
+  button {
+    min-height: 48px;
+  }
+
+  input,
+  select {
+    min-height: 48px;
+  }
+
+}
+
+/* =====================================================
+   横画面
+===================================================== */
+
+@media (orientation: landscape) and (max-height: 600px) {
+
+  .modal {
+    align-items: flex-start;
+  }
+
+  .modal-box {
+    margin: 10px 0;
+  }
+
+}
